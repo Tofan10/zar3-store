@@ -8,7 +8,7 @@ export const revalidate = 60
 async function getData() {
   const [{ data: products }, { data: categories }] = await Promise.all([
     supabase.from('products').select('*, category:categories(*)').eq('active', true).order('created_at', { ascending: false }),
-    supabase.from('categories').select('*').order('name'),
+    supabase.from('categories').select('*').order('sort_order'),
   ])
   return { products: products || [], categories: categories || [] }
 }
