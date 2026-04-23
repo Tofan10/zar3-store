@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { read, utils } from 'xlsx'
 import { Product, Category } from '@/lib/types'
 
 type Tab = 'stats' | 'products' | 'categories'
@@ -187,34 +188,32 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
     'PC Builds': 'pc-builds',
   }
 
-  async function handleImportCSV(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImportExcel(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setImporting(true)
     setImportResult(null)
 
-    const text = await file.text()
-    const lines = text.trim().split('\n')
-    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase())
-
-    const idx = {
-      name: headers.findIndex(h => h === 'name'),
-      price: headers.findIndex(h => h === 'price' || h === 'sale price'),
-      stock: headers.findIndex(h => h === 'stock'),
-      category: headers.findIndex(h => h === 'category_slug' || h === 'category'),
-    }
+    const buffer = await file.arrayBuffer()
+    const wb = read(buffer, { type: 'array' })
+    const ws = wb.Sheets[wb.SheetNames[0]]
+    const raw: any[] = utils.sheet_to_json(ws, { defval: '' })
 
     const nameToSlug: Record<string, string> = {}
     categories.forEach((c: any) => { nameToSlug[c.name] = c.slug })
 
-    const rows = lines.slice(1).map(line => {
-      const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''))
-      const rawCat = idx.category >= 0 ? cols[idx.category] : ''
+    const rows = raw.map(r => {
+      // normalize keys to lowercase
+      const row: Record<string, any> = {}
+      for (const k in r) row[k.toLowerCase().trim()] = r[k]
+
+      const rawCat = (row['category'] || row['category_slug'] || '').toString().trim()
       const category_slug = nameToSlug[rawCat] || slugMap[rawCat] || rawCat
+
       return {
-        name: idx.name >= 0 ? cols[idx.name] : '',
-        price: idx.price >= 0 ? cols[idx.price] : '',
-        stock: idx.stock >= 0 ? cols[idx.stock] : '',
+        name: (row['name'] || '').toString().trim(),
+        price: row['sale price'] ?? row['price'] ?? '',
+        stock: row['stock'] ?? '',
         category_slug,
       }
     }).filter(r => r.name)
@@ -247,9 +246,9 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
               cursor: importing ? 'not-allowed' : 'pointer', fontWeight: 500
             }}
           >
-            {importing ? '⏳ Importing...' : '📥 Import CSV'}
+            {importing ? '⏳ Importing...' : '📥 Import Excel'}
           </button>
-          <input ref={importRef} type="file" accept=".csv" onChange={handleImportCSV} style={{ display: 'none' }} />
+          <input ref={importRef} type="file" accept=".xlsx,.xls" onChange={handleImportExcel} style={{ display: 'none' }} />
           <button className="btn-primary" onClick={onAdd}>+ Add Product</button>
         </div>
       </div>
