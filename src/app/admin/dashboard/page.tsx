@@ -98,7 +98,7 @@ export default function AdminDashboard() {
           <ProductsTab
             products={products} categories={categories}
             onAdd={() => { setEditingProduct(null); setShowProductForm(true) }}
-            onEdit={(p: any) => { setEditingProduct(p); setShowProductForm(true) }}
+            onEdit={(p: Product) => { setEditingProduct(p); setShowProductForm(true) }}
             onDelete={deleteProduct}
             onToggleActive={toggleActive}
             onToggleFeatured={toggleFeatured}
@@ -110,7 +110,7 @@ export default function AdminDashboard() {
           <CategoriesTab
             categories={categories}
             onAdd={() => { setEditingCat(null); setShowCatForm(true) }}
-            onEdit={c => { setEditingCat(c); setShowCatForm(true) }}
+            onEdit={(c: Category) => { setEditingCat(c); setShowCatForm(true) }}
             onDelete={deleteCategory}
             showForm={showCatForm}
             editingCat={editingCat}
@@ -240,7 +240,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
   }
 
   function removeImage(url: string) {
-    setForm(f => ({ ...f, images: f.images.filter(i => i !== url) }))
+    setForm(f => ({ ...f, images: f.images.filter((i: string) => i !== url) }))
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -307,7 +307,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Images</label>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
-            {form.images.map(url => (
+            {form.images.map((url: string) => (
               <div key={url} style={{ position: 'relative', width: 80, height: 80 }}>
                 <img src={url} alt="" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid #21262d' }} />
                 <button type="button" onClick={() => removeImage(url)} style={{
