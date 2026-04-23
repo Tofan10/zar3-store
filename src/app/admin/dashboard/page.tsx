@@ -98,7 +98,7 @@ export default function AdminDashboard() {
           <ProductsTab
             products={products} categories={categories}
             onAdd={() => { setEditingProduct(null); setShowProductForm(true) }}
-            onEdit={p => { setEditingProduct(p); setShowProductForm(true) }}
+            onEdit={(p: any) => { setEditingProduct(p); setShowProductForm(true) }}
             onDelete={deleteProduct}
             onToggleActive={toggleActive}
             onToggleFeatured={toggleFeatured}
