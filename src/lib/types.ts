@@ -19,5 +19,6 @@ export interface Product {
   specs: Record<string, string>
   featured: boolean
   active: boolean
+  warranty: number | null
   created_at: string
 }
