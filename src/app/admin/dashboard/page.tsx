@@ -350,6 +350,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
     specs: product?.specs ? Object.entries(product.specs).map(([k, v]) => `${k}: ${v}`).join('\n') : '',
     featured: product?.featured || false,
     active: product?.active ?? true,
+    warranty: product?.warranty ?? null,
   })
   const [imageUrl, setImageUrl] = useState('')
   const [urlError, setUrlError] = useState('')
@@ -452,6 +453,16 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
           <div>
             <label style={labelStyle}>Stock Quantity *</label>
             <input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: Number(e.target.value) }))} min={0} required />
+          </div>
+          <div>
+            <label style={labelStyle}>Warranty (days)</label>
+            <input
+              type="number"
+              value={form.warranty ?? ''}
+              onChange={e => setForm(f => ({ ...f, warranty: e.target.value ? Number(e.target.value) : null }))}
+              min={0}
+              placeholder="e.g. 365"
+            />
           </div>
         </div>
 
