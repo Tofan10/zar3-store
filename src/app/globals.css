@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand: #378ADD;
+  --brand-dark: #185FA5;
+  --dark-bg: #0d1117;
+  --dark-surface: #161b22;
+  --dark-border: #21262d;
+  --dark-muted: #8b949e;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--dark-bg);
+  color: #e6edf3;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+input, textarea, select {
+  background: #161b22;
+  border: 1px solid #30363d;
+  color: #e6edf3;
+  border-radius: 8px;
+  padding: 8px 12px;
+  width: 100%;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: #378ADD;
+}
+input::placeholder, textarea::placeholder {
+  color: #8b949e;
+}
+
+.btn-primary {
+  background: #1a6fc4;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: #378ADD; }
+.btn-primary:disabled { background: #0c2a4a; color: #8b949e; cursor: not-allowed; }
+
+.btn-danger {
+  background: transparent;
+  color: #f85149;
+  border: 1px solid #f85149;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-danger:hover { background: #f85149; color: #fff; }
+
+.card {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 12px;
+}
