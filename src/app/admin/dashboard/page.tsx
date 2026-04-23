@@ -248,7 +248,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
     setSaving(true)
     setError('')
     const specs: Record<string, string> = {}
-    form.specs.split('\n').forEach((line: string) => { const idx = line.indexOf(':'); if (idx > 0) { const k = line.slice(0, idx).trim(); const v = line.slice(idx + 1).trim(); if (k) (specs as any)[k] = v } })
+    form.specs.split('\n').forEach((line: string) => { if (line.trim()) specs[line.trim()] = '' })
 
     const body = { ...form, specs, price: Number(form.price), stock: Number(form.stock) }
     const url = product ? `/api/products/${product.id}` : '/api/products'
@@ -298,7 +298,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
         </div>
 
         <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Specs (JSON format)</label>
+          <label style={labelStyle}>Specs</label>
           <textarea value={form.specs} onChange={e => setForm(f => ({ ...f, specs: e.target.value }))} rows={4}
             placeholder={'{\n  "GPU": "RTX 4070 Ti",\n  "VRAM": "12GB GDDR6X"\n}'}
             style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }} />
