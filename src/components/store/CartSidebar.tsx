@@ -5,20 +5,30 @@ import { useState } from 'react'
 export default function CartSidebar() {
   const { items, removeItem, updateQty, clearCart, total, count } = useCart()
   const [open, setOpen] = useState(false)
+  const [ordered, setOrdered] = useState<'whatsapp' | 'facebook' | null>(null)
 
   function buildOrderMessage() {
     const lines = items.map(i =>
       `• ${i.product.name} x${i.quantity} = ${(i.product.price * i.quantity).toLocaleString()} EGP`
     )
-    return `Hello ZAR3 Hardware, I'd like to order:\n\n${lines.join('\n')}\n\nTotal: ${total.toLocaleString()} EGP`
+    return `Hello ZAR3 Hardware! 👋\n\nI'd like to place the following order:\n\n${lines.join('\n')}\n\n💰 Total: ${total.toLocaleString()} EGP\n\nPlease confirm availability. Thank you!`
   }
 
   function orderWhatsApp() {
     window.open(`https://wa.me/201124424414?text=${encodeURIComponent(buildOrderMessage())}`, '_blank')
+    setOrdered('whatsapp')
+    clearCart()
   }
 
   function orderFacebook() {
     window.open('https://www.facebook.com/profile.php?id=61554098374352', '_blank')
+    setOrdered('facebook')
+    clearCart()
+  }
+
+  function handleClose() {
+    setOpen(false)
+    setTimeout(() => setOrdered(null), 400)
   }
 
   return (
@@ -47,128 +57,161 @@ export default function CartSidebar() {
       </button>
 
       {open && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 1000,
-          display: 'flex', justifyContent: 'flex-end'
-        }}>
-          <div
-            onClick={() => setOpen(false)}
-            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }}
-          />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', justifyContent: 'flex-end' }}>
+          <div onClick={handleClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }} />
           <div style={{
             position: 'relative', width: 400, maxWidth: '95vw',
             background: '#0d1117', borderLeft: '1px solid #21262d',
-            height: '100vh', display: 'flex', flexDirection: 'column',
-            zIndex: 1
+            height: '100vh', display: 'flex', flexDirection: 'column', zIndex: 1
           }}>
             <div style={{
               padding: '20px 24px', borderBottom: '1px solid #21262d',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between'
             }}>
               <span style={{ color: '#e6edf3', fontWeight: 500, fontSize: 16 }}>
-                Cart {count > 0 && <span style={{ color: '#8b949e', fontSize: 13, fontWeight: 400 }}>({count} items)</span>}
+                Cart {count > 0 && !ordered && <span style={{ color: '#8b949e', fontSize: 13, fontWeight: 400 }}>({count} items)</span>}
               </span>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                {items.length > 0 && (
+                {items.length > 0 && !ordered && (
                   <button onClick={clearCart} style={{
                     background: 'none', border: 'none', color: '#f85149',
                     fontSize: 12, cursor: 'pointer', textDecoration: 'underline'
                   }}>Clear all</button>
                 )}
-                <button onClick={() => setOpen(false)} style={{
+                <button onClick={handleClose} style={{
                   background: 'none', border: 'none', color: '#8b949e',
                   fontSize: 22, cursor: 'pointer', lineHeight: 1, padding: 0
                 }}>×</button>
               </div>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
-              {items.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#8b949e', paddingTop: 80 }}>
-                  <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>🛒</div>
-                  <div style={{ fontSize: 15 }}>Your cart is empty</div>
-                  <div style={{ fontSize: 13, marginTop: 6 }}>Add products to start your order</div>
+            {/* Thank you screen */}
+            {ordered ? (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
+                <div style={{ fontSize: 64, marginBottom: 20 }}>🎉</div>
+                <h2 style={{ color: '#e6edf3', fontSize: 22, fontWeight: 600, marginBottom: 12 }}>
+                  Thank you for your order!
+                </h2>
+                <p style={{ color: '#8b949e', fontSize: 15, lineHeight: 1.7, marginBottom: 8 }}>
+                  Your order has been sent via{' '}
+                  <span style={{ color: ordered === 'whatsapp' ? '#25d366' : '#1877f2', fontWeight: 500 }}>
+                    {ordered === 'whatsapp' ? 'WhatsApp' : 'Facebook'}
+                  </span>.
+                </p>
+                <p style={{ color: '#8b949e', fontSize: 14, lineHeight: 1.7, marginBottom: 28 }}>
+                  Our team at <span style={{ color: '#378ADD' }}>ZAR3 Hardware</span> will get back to you shortly to confirm your order and arrange delivery. 🚀
+                </p>
+                <div style={{
+                  background: '#161b22', border: '1px solid #21262d',
+                  borderRadius: 12, padding: '16px 20px', width: '100%', marginBottom: 24
+                }}>
+                  <div style={{ fontSize: 12, color: '#8b949e', marginBottom: 4 }}>Contact us directly</div>
+                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 8 }}>
+                    <a href="https://wa.me/201124424414" target="_blank" rel="noopener" style={{
+                      background: '#128c7e', color: '#fff', borderRadius: 8,
+                      padding: '8px 16px', fontSize: 13, textDecoration: 'none', fontWeight: 500
+                    }}>WhatsApp</a>
+                    <a href="https://www.facebook.com/profile.php?id=61554098374352" target="_blank" rel="noopener" style={{
+                      background: '#1877f2', color: '#fff', borderRadius: 8,
+                      padding: '8px 16px', fontSize: 13, textDecoration: 'none', fontWeight: 500
+                    }}>Facebook</a>
+                  </div>
                 </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {items.map(({ product, quantity }) => (
-                    <div key={product.id} style={{
-                      background: '#161b22', border: '1px solid #21262d',
-                      borderRadius: 10, padding: 14, display: 'flex', gap: 12
-                    }}>
-                      <div style={{
-                        width: 56, height: 56, background: '#0d1117', borderRadius: 8,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                      }}>
-                        {product.images?.[0]
-                          ? <img src={product.images[0]} alt="" style={{ width: 52, height: 52, objectFit: 'contain', borderRadius: 6 }} />
-                          : <span style={{ fontSize: 24, opacity: 0.4 }}>🖥️</span>}
+                <button onClick={handleClose} style={{
+                  background: '#1a6fc4', border: 'none', borderRadius: 8,
+                  color: '#fff', padding: '10px 28px', fontSize: 14, cursor: 'pointer', fontWeight: 500
+                }}>Continue Shopping</button>
+              </div>
+            ) : (
+              <>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
+                  {items.length === 0 ? (
+                    <div style={{ textAlign: 'center', color: '#8b949e', paddingTop: 80 }}>
+                      <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>🛒</div>
+                      <div style={{ fontSize: 15 }}>Your cart is empty</div>
+                      <div style={{ fontSize: 13, marginTop: 6 }}>Add products to start your order</div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {items.map(({ product, quantity }) => (
+                        <div key={product.id} style={{
+                          background: '#161b22', border: '1px solid #21262d',
+                          borderRadius: 10, padding: 14, display: 'flex', gap: 12
+                        }}>
+                          <div style={{
+                            width: 56, height: 56, background: '#0d1117', borderRadius: 8,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                            overflow: 'hidden'
+                          }}>
+                            {product.images?.[0]
+                              ? <img src={product.images[0]} alt="" style={{ width: 52, height: 52, objectFit: 'contain', borderRadius: 6 }} referrerPolicy="no-referrer" />
+                              : <span style={{ fontSize: 24, opacity: 0.4 }}>🖥️</span>}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ color: '#e6edf3', fontSize: 13, fontWeight: 500, marginBottom: 4, lineHeight: 1.3 }}>{product.name}</div>
+                            <div style={{ color: '#3fb950', fontSize: 13, marginBottom: 8 }}>
+                              {(product.price * quantity).toLocaleString()} EGP
+                              {quantity > 1 && <span style={{ color: '#8b949e', fontSize: 11 }}> ({product.price.toLocaleString()} × {quantity})</span>}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <button onClick={() => updateQty(product.id, quantity - 1)} style={qtyBtn}>−</button>
+                              <span style={{ color: '#e6edf3', fontSize: 14, minWidth: 20, textAlign: 'center' }}>{quantity}</span>
+                              <button onClick={() => updateQty(product.id, quantity + 1)} disabled={quantity >= product.stock} style={qtyBtn}>+</button>
+                              <button onClick={() => removeItem(product.id)} style={{
+                                marginLeft: 'auto', background: 'none', border: 'none',
+                                color: '#f85149', cursor: 'pointer', fontSize: 12
+                              }}>Remove</button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {items.length > 0 && (
+                  <div style={{ padding: '20px 24px', borderTop: '1px solid #21262d' }}>
+                    <div style={{ background: '#161b22', borderRadius: 10, padding: '14px 16px', marginBottom: 16 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#8b949e', fontSize: 13, marginBottom: 6 }}>
+                        <span>Items ({count})</span>
+                        <span>{total.toLocaleString()} EGP</span>
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ color: '#e6edf3', fontSize: 13, fontWeight: 500, marginBottom: 4, lineHeight: 1.3 }}>{product.name}</div>
-                        <div style={{ color: '#3fb950', fontSize: 13, marginBottom: 8 }}>
-                          {(product.price * quantity).toLocaleString()} EGP
-                          {quantity > 1 && <span style={{ color: '#8b949e', fontSize: 11 }}> ({product.price.toLocaleString()} × {quantity})</span>}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <button onClick={() => updateQty(product.id, quantity - 1)} style={qtyBtn}>−</button>
-                          <span style={{ color: '#e6edf3', fontSize: 14, minWidth: 20, textAlign: 'center' }}>{quantity}</span>
-                          <button onClick={() => updateQty(product.id, quantity + 1)} disabled={quantity >= product.stock} style={qtyBtn}>+</button>
-                          <button onClick={() => removeItem(product.id)} style={{
-                            marginLeft: 'auto', background: 'none', border: 'none',
-                            color: '#f85149', cursor: 'pointer', fontSize: 12
-                          }}>Remove</button>
-                        </div>
+                      <div style={{ borderTop: '1px solid #21262d', paddingTop: 10, display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#e6edf3', fontWeight: 500 }}>Total</span>
+                        <span style={{ color: '#3fb950', fontSize: 20, fontWeight: 600 }}>{total.toLocaleString()} EGP</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
 
-            {items.length > 0 && (
-              <div style={{ padding: '20px 24px', borderTop: '1px solid #21262d' }}>
-                <div style={{
-                  background: '#161b22', borderRadius: 10, padding: '14px 16px', marginBottom: 16
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#8b949e', fontSize: 13, marginBottom: 6 }}>
-                    <span>Items ({count})</span>
-                    <span>{total.toLocaleString()} EGP</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <button onClick={orderWhatsApp} style={{
+                        background: '#128c7e', border: 'none', borderRadius: 10,
+                        color: '#fff', padding: '13px', fontSize: 15, fontWeight: 500,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', gap: 8, transition: 'background 0.15s'
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#25d366'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#128c7e'}
+                      >
+                        <WhatsAppIcon /> Order via WhatsApp
+                      </button>
+                      <button onClick={orderFacebook} style={{
+                        background: '#1877f2', border: 'none', borderRadius: 10,
+                        color: '#fff', padding: '13px', fontSize: 15, fontWeight: 500,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', gap: 8, transition: 'background 0.15s'
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#0d65d9'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#1877f2'}
+                      >
+                        <FacebookIcon /> Order via Facebook
+                      </button>
+                    </div>
+                    <p style={{ color: '#6e7681', fontSize: 11, textAlign: 'center', marginTop: 10 }}>
+                      Your order details will be sent automatically
+                    </p>
                   </div>
-                  <div style={{ borderTop: '1px solid #21262d', paddingTop: 10, display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#e6edf3', fontWeight: 500 }}>Total</span>
-                    <span style={{ color: '#3fb950', fontSize: 20, fontWeight: 600 }}>{total.toLocaleString()} EGP</span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <button onClick={orderWhatsApp} style={{
-                    background: '#128c7e', border: 'none', borderRadius: 10,
-                    color: '#fff', padding: '13px', fontSize: 15, fontWeight: 500,
-                    cursor: 'pointer', display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', gap: 8, transition: 'background 0.15s'
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#25d366'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#128c7e'}
-                  >
-                    <WhatsAppIcon /> Order via WhatsApp
-                  </button>
-                  <button onClick={orderFacebook} style={{
-                    background: '#1877f2', border: 'none', borderRadius: 10,
-                    color: '#fff', padding: '13px', fontSize: 15, fontWeight: 500,
-                    cursor: 'pointer', display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', gap: 8, transition: 'background 0.15s'
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#0d65d9'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#1877f2'}
-                  >
-                    <FacebookIcon /> Order via Facebook
-                  </button>
-                </div>
-                <p style={{ color: '#6e7681', fontSize: 11, textAlign: 'center', marginTop: 10 }}>
-                  Your order details will be sent automatically
-                </p>
-              </div>
+                )}
+              </>
             )}
           </div>
         </div>
