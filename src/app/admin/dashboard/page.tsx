@@ -165,12 +165,112 @@ export default function AdminDashboard() {
 }
 
 function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleActive, onToggleFeatured, showForm, editingProduct, onFormClose }: any) {
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<{ inserted?: number; skipped?: any[]; error?: string } | null>(null)
+  const importRef = useRef<HTMLInputElement>(null)
+
+  const slugMap: Record<string, string> = {
+    'Processors (CPU)': 'processors-cpu',
+    'Graphics Cards (GPU)': 'graphics-cards-gpu',
+    'Motherboards': 'motherboards',
+    'Memory (RAM)': 'memory-ram',
+    'Storage (SSD/HDD)': 'storage-ssd-hdd',
+    'Power Supplies (PSU)': 'power-supplies-psu',
+    'Computer Cases': 'computer-cases',
+    'Cooling & Fans': 'cooling-fans',
+    'Monitor': 'monitor',
+    'Mouse': 'mouse',
+    'Keyboard': 'keyboard',
+    'Headset': 'headset',
+    'Mousepad': 'mousepad',
+    'Accessories': 'accessories',
+    'PC Builds': 'pc-builds',
+  }
+
+  async function handleImportCSV(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImporting(true)
+    setImportResult(null)
+
+    const text = await file.text()
+    const lines = text.trim().split('\n')
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase())
+
+    const idx = {
+      name: headers.findIndex(h => h === 'name'),
+      price: headers.findIndex(h => h === 'price' || h === 'sale price'),
+      stock: headers.findIndex(h => h === 'stock'),
+      category: headers.findIndex(h => h === 'category_slug' || h === 'category'),
+    }
+
+    const nameToSlug: Record<string, string> = {}
+    categories.forEach((c: any) => { nameToSlug[c.name] = c.slug })
+
+    const rows = lines.slice(1).map(line => {
+      const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''))
+      const rawCat = idx.category >= 0 ? cols[idx.category] : ''
+      const category_slug = nameToSlug[rawCat] || slugMap[rawCat] || rawCat
+      return {
+        name: idx.name >= 0 ? cols[idx.name] : '',
+        price: idx.price >= 0 ? cols[idx.price] : '',
+        stock: idx.stock >= 0 ? cols[idx.stock] : '',
+        category_slug,
+      }
+    }).filter(r => r.name)
+
+    const res = await fetch('/api/products/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows }),
+    })
+    const data = await res.json()
+    setImporting(false)
+    setImportResult(data)
+    if (!data.error) onFormClose()
+    e.target.value = ''
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 style={{ color: '#e6edf3', fontSize: 18, fontWeight: 500 }}>Products</h2>
-        <button className="btn-primary" onClick={onAdd}>+ Add Product</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => importRef.current?.click()}
+            disabled={importing}
+            style={{
+              background: importing ? '#161b22' : '#0c2a0c',
+              border: '1px solid #3fb950',
+              color: importing ? '#8b949e' : '#3fb950',
+              borderRadius: 8, padding: '8px 16px', fontSize: 13,
+              cursor: importing ? 'not-allowed' : 'pointer', fontWeight: 500
+            }}
+          >
+            {importing ? '⏳ Importing...' : '📥 Import CSV'}
+          </button>
+          <input ref={importRef} type="file" accept=".csv" onChange={handleImportCSV} style={{ display: 'none' }} />
+          <button className="btn-primary" onClick={onAdd}>+ Add Product</button>
+        </div>
       </div>
+
+      {importResult && (
+        <div style={{
+          background: importResult.error ? '#1a0a0a' : '#0a1a0a',
+          border: `1px solid ${importResult.error ? '#f85149' : '#3fb950'}`,
+          borderRadius: 10, padding: '12px 16px', marginBottom: 16,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          <span style={{ color: importResult.error ? '#f85149' : '#3fb950', fontSize: 13 }}>
+            {importResult.error
+              ? `❌ Error: ${importResult.error}`
+              : `✅ Imported ${importResult.inserted} products successfully${importResult.skipped?.length ? ` (${importResult.skipped.length} skipped)` : ''}`
+            }
+          </span>
+          <button onClick={() => setImportResult(null)} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 16 }}>×</button>
+        </div>
+      )}
+
       {showForm && <ProductForm categories={categories} product={editingProduct} onClose={onFormClose} />}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {products.length === 0 && !showForm && (
