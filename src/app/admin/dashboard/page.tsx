@@ -72,7 +72,6 @@ export default function AdminDashboard() {
     cursor: 'pointer', transition: 'all 0.15s'
   })
 
-  // Stats calculations
   const totalProducts = products.length
   const activeProducts = products.filter(p => p.active).length
   const outOfStock = products.filter(p => p.stock === 0).length
@@ -123,7 +122,6 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
-
             <h3 style={{ color: '#e6edf3', fontSize: 16, fontWeight: 500, marginBottom: 16 }}>Products per Category</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {catCounts.map(c => (
@@ -180,8 +178,10 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
         )}
         {products.map((p: Product) => (
           <div key={p.id} style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ width: 52, height: 52, background: '#0d1117', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {p.images?.[0] ? <img src={p.images[0]} alt="" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 6 }} /> : <span style={{ fontSize: 24, opacity: 0.4 }}>🖥️</span>}
+            <div style={{ width: 52, height: 52, background: '#0d1117', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+              {p.images?.[0]
+                ? <img src={p.images[0]} alt="" referrerPolicy="no-referrer" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 6 }} />
+                : <span style={{ fontSize: 24, opacity: 0.4 }}>🖥️</span>}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ color: '#e6edf3', fontWeight: 500, fontSize: 14 }}>{p.name}</div>
@@ -248,14 +248,48 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
     stock: product?.stock || 0,
     category_id: product?.category_id || '',
     images: product?.images || [] as string[],
-    specs: product?.specs ? Object.entries(product.specs).map(([k,v]) => `${k}: ${v}`).join('\n') : '',
+    specs: product?.specs ? Object.entries(product.specs).map(([k, v]) => `${k}: ${v}`).join('\n') : '',
     featured: product?.featured || false,
     active: product?.active ?? true,
   })
+  const [imageUrl, setImageUrl] = useState('')
+  const [urlError, setUrlError] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [pasting, setPasting] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+
+  function addImageUrl() {
+    const url = imageUrl.trim()
+    if (!url) return
+    if (!url.startsWith('http')) { setUrlError('URL must start with http'); return }
+    if (form.images.includes(url)) { setUrlError('Image already added'); return }
+    setForm(f => ({ ...f, images: [...f.images, url] }))
+    setImageUrl('')
+    setUrlError('')
+  }
+
+  async function handlePaste(e: React.ClipboardEvent) {
+    const items = e.clipboardData?.items
+    if (!items) return
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault()
+        setPasting(true)
+        const file = item.getAsFile()
+        if (!file) continue
+        const fd = new FormData()
+        fd.append('file', file)
+        const res = await fetch('/api/upload', { method: 'POST', body: fd })
+        const data = await res.json()
+        setPasting(false)
+        if (data.url) setForm(f => ({ ...f, images: [...f.images, data.url] }))
+        else setError('Paste upload failed: ' + data.error)
+        break
+      }
+    }
+  }
 
   async function uploadImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -298,7 +332,8 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
         <h3 style={{ color: '#e6edf3', fontSize: 16, fontWeight: 500 }}>{product ? 'Edit Product' : 'New Product'}</h3>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
       </div>
-      <form onSubmit={handleSave}>
+
+      <form onSubmit={handleSave} onPaste={handlePaste}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <div>
             <label style={labelStyle}>Product Name *</label>
@@ -320,31 +355,77 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
             <input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: Number(e.target.value) }))} min={0} required />
           </div>
         </div>
+
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Description</label>
           <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} placeholder="Short product description..." style={{ resize: 'vertical' }} />
         </div>
+
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Specs</label>
-          <textarea value={form.specs} onChange={e => setForm(f => ({ ...f, specs: e.target.value }))} rows={4} placeholder="RTX 4070 Ti&#10;16GB GDDR6X&#10;PCIe 4.0" style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }} />
+          <textarea value={form.specs} onChange={e => setForm(f => ({ ...f, specs: e.target.value }))} rows={4}
+            placeholder={"RTX 4070 Ti\n16GB GDDR6X\nPCIe 4.0"}
+            style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }} />
         </div>
+
         <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Images</label>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
+          <label style={labelStyle}>
+            Images
+            {pasting && <span style={{ color: '#378ADD', fontSize: 11, marginLeft: 8, fontWeight: 400 }}>Uploading pasted image...</span>}
+          </label>
+
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <input
+              value={imageUrl}
+              onChange={e => { setImageUrl(e.target.value); setUrlError('') }}
+              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addImageUrl())}
+              placeholder="Paste image URL here, or press Ctrl+V anywhere to paste a screenshot"
+              style={{ flex: 1 }}
+            />
+            <button type="button" onClick={addImageUrl} style={{
+              background: '#1a6fc4', border: 'none', borderRadius: 8,
+              color: '#fff', padding: '8px 16px', fontSize: 13,
+              cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 500
+            }}>Add URL</button>
+          </div>
+          {urlError && <div style={{ color: '#f85149', fontSize: 12, marginBottom: 8 }}>{urlError}</div>}
+
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
             {form.images.map((url: string) => (
               <div key={url} style={{ position: 'relative', width: 80, height: 80 }}>
-                <img src={url} alt="" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid #21262d' }} />
-                <button type="button" onClick={() => removeImage(url)} style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#f85149', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                <img src={url} alt="" referrerPolicy="no-referrer"
+                  style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid #21262d' }}
+                  onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3' }}
+                />
+                <button type="button" onClick={() => removeImage(url)} style={{
+                  position: 'absolute', top: -6, right: -6, width: 20, height: 20,
+                  borderRadius: '50%', background: '#f85149', border: 'none',
+                  color: '#fff', cursor: 'pointer', fontSize: 12,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>×</button>
               </div>
             ))}
-            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: 80, height: 80, background: '#161b22', border: '1px dashed #30363d', borderRadius: 8, color: '#8b949e', cursor: 'pointer', fontSize: 24 }}>{uploading ? '...' : '+'}</button>
+            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} style={{
+              width: 80, height: 80, background: '#161b22', border: '1px dashed #30363d',
+              borderRadius: 8, color: '#8b949e', cursor: 'pointer', fontSize: 13,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4
+            }}>
+              <span style={{ fontSize: 22 }}>{uploading ? '⏳' : '+'}</span>
+              <span style={{ fontSize: 10 }}>{uploading ? 'Uploading' : 'Upload'}</span>
+            </button>
             <input ref={fileRef} type="file" accept="image/*" onChange={uploadImage} style={{ display: 'none' }} />
           </div>
+
+          <div style={{ color: '#6e7681', fontSize: 11, marginTop: 8 }}>
+            3 ways to add images: Ctrl+V to paste screenshot · paste URL above · or upload file
+          </div>
         </div>
+
         <div style={{ display: 'flex', gap: 20, marginBottom: 20 }}>
           <Toggle label="Active (visible in store)" value={form.active} onChange={() => setForm(f => ({ ...f, active: !f.active }))} />
           <Toggle label="Featured (shown at top)" value={form.featured} onChange={() => setForm(f => ({ ...f, featured: !f.featured }))} />
         </div>
+
         {error && <div style={{ color: '#f85149', fontSize: 13, marginBottom: 12 }}>{error}</div>}
         <div style={{ display: 'flex', gap: 10 }}>
           <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving...' : (product ? 'Save Changes' : 'Add Product')}</button>
