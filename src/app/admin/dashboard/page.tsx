@@ -247,8 +247,8 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
     e.preventDefault()
     setSaving(true)
     setError('')
-    let specs = {}
-    try { specs = JSON.parse(form.specs) } catch { setError('Specs must be valid JSON'); setSaving(false); return }
+    const specs: Record<string, string> = {}
+    form.specs.split('\n').forEach((line: string) => { const idx = line.indexOf(':'); if (idx > 0) { const k = line.slice(0, idx).trim(); const v = line.slice(idx + 1).trim(); if (k) (specs as any)[k] = v } })
 
     const body = { ...form, specs, price: Number(form.price), stock: Number(form.stock) }
     const url = product ? `/api/products/${product.id}` : '/api/products'
