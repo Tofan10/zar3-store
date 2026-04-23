@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import ProductCard from '@/components/store/ProductCard'
 import { Product, Category } from '@/lib/types'
 import Link from 'next/link'
-
+export const revalidate = 60
 async function getData() {
   const [{ data: products }, { data: categories }] = await Promise.all([
     supabase.from('products').select('*, category:categories(*)').eq('active', true).order('created_at', { ascending: false }),
