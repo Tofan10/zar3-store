@@ -4,7 +4,7 @@ import { CartProvider } from '@/lib/CartContext'
 import CartSidebar from '@/components/store/CartSidebar'
 
 async function getCategories() {
-  const { data } = await supabase.from('categories').select('*').order('name')
+  const { data } = await supabase.from('categories').select('*').order('sort_order')
   return data || []
 }
 
