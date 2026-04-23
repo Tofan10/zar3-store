@@ -3,11 +3,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Product, Category } from '@/lib/types'
 
-type Tab = 'products' | 'categories'
+type Tab = 'stats' | 'products' | 'categories'
 
 export default function AdminDashboard() {
   const router = useRouter()
-  const [tab, setTab] = useState<Tab>('products')
+  const [tab, setTab] = useState<Tab>('stats')
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
@@ -72,6 +72,17 @@ export default function AdminDashboard() {
     cursor: 'pointer', transition: 'all 0.15s'
   })
 
+  // Stats calculations
+  const totalProducts = products.length
+  const activeProducts = products.filter(p => p.active).length
+  const outOfStock = products.filter(p => p.stock === 0).length
+  const featured = products.filter(p => p.featured).length
+  const totalValue = products.reduce((sum, p) => sum + p.price * p.stock, 0)
+  const catCounts = categories.map(c => ({
+    ...c,
+    count: products.filter(p => p.category_id === c.id).length
+  })).sort((a, b) => b.count - a.count)
+
   return (
     <div style={{ minHeight: '100vh', background: '#0d1117' }}>
       <div style={{ background: '#080c12', borderBottom: '1px solid #21262d', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -88,12 +99,45 @@ export default function AdminDashboard() {
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px' }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
+          <button style={navStyle(tab === 'stats')} onClick={() => setTab('stats')}>Stats</button>
           <button style={navStyle(tab === 'products')} onClick={() => setTab('products')}>Products ({products.length})</button>
           <button style={navStyle(tab === 'categories')} onClick={() => setTab('categories')}>Categories ({categories.length})</button>
         </div>
 
         {loading ? (
           <div style={{ textAlign: 'center', color: '#8b949e', padding: '80px 0' }}>Loading...</div>
+        ) : tab === 'stats' ? (
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
+              {[
+                { label: 'Total Products', value: totalProducts, color: '#378ADD' },
+                { label: 'Active Products', value: activeProducts, color: '#3fb950' },
+                { label: 'Out of Stock', value: outOfStock, color: '#f85149' },
+                { label: 'Featured', value: featured, color: '#e3b341' },
+                { label: 'Categories', value: categories.length, color: '#85b7eb' },
+                { label: 'Inventory Value', value: totalValue.toLocaleString() + ' EGP', color: '#3fb950' },
+              ].map(s => (
+                <div key={s.label} style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 12, padding: 20 }}>
+                  <div style={{ color: '#8b949e', fontSize: 12, marginBottom: 8 }}>{s.label}</div>
+                  <div style={{ color: s.color, fontSize: 28, fontWeight: 700 }}>{s.value}</div>
+                </div>
+              ))}
+            </div>
+
+            <h3 style={{ color: '#e6edf3', fontSize: 16, fontWeight: 500, marginBottom: 16 }}>Products per Category</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {catCounts.map(c => (
+                <div key={c.id} style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 20 }}>{c.icon}</span>
+                  <span style={{ color: '#e6edf3', fontSize: 14, flex: 1 }}>{c.name}</span>
+                  <div style={{ background: '#0d1117', borderRadius: 8, padding: '4px 12px', color: '#378ADD', fontSize: 13, fontWeight: 600 }}>{c.count} products</div>
+                  <div style={{ width: 120, height: 6, background: '#21262d', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ width: `${totalProducts > 0 ? (c.count / totalProducts) * 100 : 0}%`, height: '100%', background: '#378ADD', borderRadius: 3 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         ) : tab === 'products' ? (
           <ProductsTab
             products={products} categories={categories}
@@ -129,11 +173,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
         <h2 style={{ color: '#e6edf3', fontSize: 18, fontWeight: 500 }}>Products</h2>
         <button className="btn-primary" onClick={onAdd}>+ Add Product</button>
       </div>
-
-      {showForm && (
-        <ProductForm categories={categories} product={editingProduct} onClose={onFormClose} />
-      )}
-
+      {showForm && <ProductForm categories={categories} product={editingProduct} onClose={onFormClose} />}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {products.length === 0 && !showForm && (
           <div style={{ textAlign: 'center', color: '#8b949e', padding: '60px 0' }}>No products yet. Add your first product!</div>
@@ -167,9 +207,7 @@ function CategoriesTab({ categories, onAdd, onEdit, onDelete, showForm, editingC
         <h2 style={{ color: '#e6edf3', fontSize: 18, fontWeight: 500 }}>Categories</h2>
         <button className="btn-primary" onClick={onAdd}>+ Add Category</button>
       </div>
-
       {showForm && <CategoryForm category={editingCat} onClose={onFormClose} />}
-
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
         {categories.length === 0 && !showForm && (
           <div style={{ color: '#8b949e', fontSize: 14 }}>No categories yet.</div>
@@ -194,15 +232,8 @@ function CategoriesTab({ categories, onAdd, onEdit, onDelete, showForm, editingC
 function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: () => void }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#8b949e', cursor: 'pointer' }} onClick={onChange}>
-      <div style={{
-        width: 32, height: 18, borderRadius: 9, background: value ? '#1a6fc4' : '#21262d',
-        position: 'relative', transition: 'background 0.2s', flexShrink: 0
-      }}>
-        <div style={{
-          position: 'absolute', top: 2, left: value ? 16 : 2,
-          width: 14, height: 14, borderRadius: '50%', background: '#fff',
-          transition: 'left 0.2s'
-        }} />
+      <div style={{ width: 32, height: 18, borderRadius: 9, background: value ? '#1a6fc4' : '#21262d', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+        <div style={{ position: 'absolute', top: 2, left: value ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
       </div>
       {label}
     </div>
@@ -249,7 +280,6 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
     setError('')
     const specs: Record<string, string> = {}
     form.specs.split('\n').forEach((line: string) => { if (line.trim()) specs[line.trim()] = '' })
-
     const body = { ...form, specs, price: Number(form.price), stock: Number(form.stock) }
     const url = product ? `/api/products/${product.id}` : '/api/products'
     const method = product ? 'PUT' : 'POST'
@@ -268,7 +298,6 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
         <h3 style={{ color: '#e6edf3', fontSize: 16, fontWeight: 500 }}>{product ? 'Edit Product' : 'New Product'}</h3>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
       </div>
-
       <form onSubmit={handleSave}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <div>
@@ -291,48 +320,32 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
             <input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: Number(e.target.value) }))} min={0} required />
           </div>
         </div>
-
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Description</label>
           <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} placeholder="Short product description..." style={{ resize: 'vertical' }} />
         </div>
-
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Specs</label>
-          <textarea value={form.specs} onChange={e => setForm(f => ({ ...f, specs: e.target.value }))} rows={4}
-            placeholder={'{\n  "GPU": "RTX 4070 Ti",\n  "VRAM": "12GB GDDR6X"\n}'}
-            style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }} />
+          <textarea value={form.specs} onChange={e => setForm(f => ({ ...f, specs: e.target.value }))} rows={4} placeholder="RTX 4070 Ti&#10;16GB GDDR6X&#10;PCIe 4.0" style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }} />
         </div>
-
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Images</label>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
             {form.images.map((url: string) => (
               <div key={url} style={{ position: 'relative', width: 80, height: 80 }}>
                 <img src={url} alt="" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid #21262d' }} />
-                <button type="button" onClick={() => removeImage(url)} style={{
-                  position: 'absolute', top: -6, right: -6, width: 20, height: 20,
-                  borderRadius: '50%', background: '#f85149', border: 'none',
-                  color: '#fff', cursor: 'pointer', fontSize: 12, display: 'flex',
-                  alignItems: 'center', justifyContent: 'center'
-                }}>×</button>
+                <button type="button" onClick={() => removeImage(url)} style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#f85149', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
               </div>
             ))}
-            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} style={{
-              width: 80, height: 80, background: '#161b22', border: '1px dashed #30363d',
-              borderRadius: 8, color: '#8b949e', cursor: 'pointer', fontSize: 24
-            }}>{uploading ? '...' : '+'}</button>
+            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: 80, height: 80, background: '#161b22', border: '1px dashed #30363d', borderRadius: 8, color: '#8b949e', cursor: 'pointer', fontSize: 24 }}>{uploading ? '...' : '+'}</button>
             <input ref={fileRef} type="file" accept="image/*" onChange={uploadImage} style={{ display: 'none' }} />
           </div>
         </div>
-
         <div style={{ display: 'flex', gap: 20, marginBottom: 20 }}>
           <Toggle label="Active (visible in store)" value={form.active} onChange={() => setForm(f => ({ ...f, active: !f.active }))} />
           <Toggle label="Featured (shown at top)" value={form.featured} onChange={() => setForm(f => ({ ...f, featured: !f.featured }))} />
         </div>
-
         {error && <div style={{ color: '#f85149', fontSize: 13, marginBottom: 12 }}>{error}</div>}
-
         <div style={{ display: 'flex', gap: 10 }}>
           <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving...' : (product ? 'Save Changes' : 'Add Product')}</button>
           <button type="button" onClick={onClose} style={{ background: 'none', border: '1px solid #21262d', borderRadius: 8, color: '#8b949e', padding: '10px 20px', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
