@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   if (!await checkAdminAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { rows } = body // [{ name, price, stock, category_slug }]
+  const { rows } = body
 
   if (!Array.isArray(rows) || rows.length === 0)
     return NextResponse.json({ error: 'No rows provided' }, { status: 400 })
@@ -25,12 +25,12 @@ export async function POST(req: NextRequest) {
   const { error: deleteError } = await supabaseAdmin
     .from('products')
     .delete()
-    .neq('id', '00000000-0000-0000-0000-000000000000') // delete all
+    .neq('id', '00000000-0000-0000-0000-000000000000')
 
   if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 })
 
-  // Build insert rows
-  const inserts = []
+  // Build rows and merge duplicates (same name + category_slug = sum stock)
+  const mergedMap: Record<string, { name: string; price: number; stock: number; category_id: string }> = {}
   const skipped = []
 
   for (const row of rows) {
@@ -49,17 +49,22 @@ export async function POST(req: NextRequest) {
       continue
     }
 
-    inserts.push({
-      name,
-      price,
-      stock,
-      category_id,
-      images: [],
-      specs: {},
-      featured: false,
-      active: true,
-    })
+    const key = `${name}||${slug}`
+    if (mergedMap[key]) {
+      // Same product — add stock
+      mergedMap[key].stock += stock
+    } else {
+      mergedMap[key] = { name, price, stock, category_id }
+    }
   }
+
+  const inserts = Object.values(mergedMap).map(p => ({
+    ...p,
+    images: [],
+    specs: {},
+    featured: false,
+    active: true,
+  }))
 
   if (inserts.length === 0)
     return NextResponse.json({ error: 'No valid rows to insert', skipped }, { status: 400 })
