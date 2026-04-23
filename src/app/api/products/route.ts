@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const category = searchParams.get('category')
   const featured = searchParams.get('featured')
 
-  let query = supabaseAdmin
+  let query = (all === 'true' ? supabaseAdmin : supabase)
     .from('products')
     .select('*, category:categories(*)')
     .order('created_at', { ascending: false })
