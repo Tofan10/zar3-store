@@ -217,7 +217,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
     stock: product?.stock || 0,
     category_id: product?.category_id || '',
     images: product?.images || [] as string[],
-    specs: product?.specs ? JSON.stringify(product.specs, null, 2) : '{}',
+    specs: product?.specs ? Object.entries(product.specs).map(([k,v]) => `${k}: ${v}`).join('\n') : '',
     featured: product?.featured || false,
     active: product?.active ?? true,
   })
