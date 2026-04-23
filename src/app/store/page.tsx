@@ -1,8 +1,10 @@
 import { supabase } from '@/lib/supabase'
-import ProductCard from '@/components/store/ProductCard'
 import { Product, Category } from '@/lib/types'
 import Link from 'next/link'
+import SearchableProducts from './SearchableProducts'
+
 export const revalidate = 60
+
 async function getData() {
   const [{ data: products }, { data: categories }] = await Promise.all([
     supabase.from('products').select('*, category:categories(*)').eq('active', true).order('created_at', { ascending: false }),
@@ -13,7 +15,6 @@ async function getData() {
 
 export default async function StorePage() {
   const { products, categories } = await getData()
-  const featured = products.filter((p: Product) => p.featured)
 
   return (
     <div>
@@ -53,25 +54,7 @@ export default async function StorePage() {
           ))}
         </div>
 
-        {featured.length > 0 && (
-          <>
-            <h2 style={{ color: '#e6edf3', fontSize: 20, fontWeight: 500, marginBottom: 20 }}>Featured Products</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginBottom: 48 }}>
-              {featured.map((p: Product) => <ProductCard key={p.id} product={p} />)}
-            </div>
-          </>
-        )}
-
-        <h2 style={{ color: '#e6edf3', fontSize: 20, fontWeight: 500, marginBottom: 20 }}>All Products</h2>
-        {products.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#8b949e', padding: '60px 0', fontSize: 15 }}>
-            No products yet. Check back soon!
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
-            {products.map((p: Product) => <ProductCard key={p.id} product={p} />)}
-          </div>
-        )}
+        <SearchableProducts products={products} />
       </div>
     </div>
   )
