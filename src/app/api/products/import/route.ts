@@ -15,12 +15,12 @@ export async function POST(req: NextRequest) {
   const slugToId: Record<string, string> = {}
   for (const c of categories ?? []) slugToId[c.slug] = c.id
 
-  // Fetch existing products (to preserve images, specs, featured, active)
-  const { data: existing } = await supabaseAdmin.from('products').select('id, name, category_id, images, specs, featured, active, warranty')
+  // Fetch existing products
+  const { data: existing } = await supabaseAdmin.from('products').select('id, name, category_id, images, specs, featured, active, warranty, description')
   const existingMap: Record<string, any> = {}
   for (const p of existing ?? []) existingMap[`${p.name}||${p.category_id}`] = p
 
-  // Merge duplicate rows (same name + category = sum stock)
+  // Merge duplicate rows
   const mergedMap: Record<string, any> = {}
   const skipped = []
 
@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
     const slug = row.category_slug?.toString().trim()
     const category_id = slugToId[slug]
     const warranty = row.warranty ? parseInt(row.warranty) : null
+    const description = (row.description || '').toString().trim()
 
     if (!name || isNaN(price) || isNaN(stock)) {
       skipped.push({ row, reason: 'missing name/price/stock' })
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
     if (mergedMap[key]) {
       mergedMap[key].stock += stock
     } else {
-      mergedMap[key] = { name, price, stock, category_id, warranty }
+      mergedMap[key] = { name, price, stock, category_id, warranty, description }
     }
   }
 
@@ -55,19 +56,18 @@ export async function POST(req: NextRequest) {
   let inserted = 0
   let updated = 0
 
-  for (const [key, row] of Object.entries(mergedMap)) {
+  for (const [key, row] of Object.entries(mergedMap) as any) {
     const existing_product = existingMap[key]
 
     if (existing_product) {
-      // UPDATE — preserve images, specs, featured, active
       await supabaseAdmin.from('products').update({
         price: row.price,
         stock: row.stock,
         warranty: row.warranty ?? existing_product.warranty,
+        ...(row.description ? { description: row.description } : {}),
       }).eq('id', existing_product.id)
       updated++
     } else {
-      // INSERT — new product
       await supabaseAdmin.from('products').insert({
         ...row,
         images: [],
