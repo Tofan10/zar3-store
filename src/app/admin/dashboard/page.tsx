@@ -167,7 +167,7 @@ export default function AdminDashboard() {
 
 function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleActive, onToggleFeatured, showForm, editingProduct, onFormClose }: any) {
   const [importing, setImporting] = useState(false)
-  const [importResult, setImportResult] = useState<{ inserted?: number; skipped?: any[]; error?: string } | null>(null)
+  const [importResult, setImportResult] = useState<{ inserted?: number; updated?: number; skipped?: any[]; error?: string } | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
 
   const slugMap: Record<string, string> = {
@@ -203,7 +203,6 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
     categories.forEach((c: any) => { nameToSlug[c.name] = c.slug })
 
     const rows = raw.map(r => {
-      // normalize keys to lowercase
       const row: Record<string, any> = {}
       for (const k in r) row[k.toLowerCase().trim()] = r[k]
 
@@ -215,6 +214,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
         price: row['sale price'] ?? row['price'] ?? '',
         stock: row['stock'] ?? '',
         category_slug,
+        warranty: row['warranty'] ? parseInt(row['warranty']) : null,
       }
     }).filter(r => r.name)
 
@@ -263,7 +263,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
           <span style={{ color: importResult.error ? '#f85149' : '#3fb950', fontSize: 13 }}>
             {importResult.error
               ? `❌ Error: ${importResult.error}`
-              : `✅ Imported ${importResult.inserted} products successfully${importResult.skipped?.length ? ` (${importResult.skipped.length} skipped)` : ''}`
+              : `✅ Updated ${importResult.updated ?? 0}, Added ${importResult.inserted ?? 0}${importResult.skipped?.length ? ` (${importResult.skipped.length} skipped)` : ''}`
             }
           </span>
           <button onClick={() => setImportResult(null)} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 16 }}>×</button>
