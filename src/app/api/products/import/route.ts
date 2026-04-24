@@ -5,32 +5,23 @@ import { checkAdminAuth } from '@/lib/auth'
 export async function POST(req: NextRequest) {
   if (!await checkAdminAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
-  const { rows } = body
-
+  const { rows } = await req.json()
   if (!Array.isArray(rows) || rows.length === 0)
     return NextResponse.json({ error: 'No rows provided' }, { status: 400 })
 
-  // Fetch all categories to map slug -> id
-  const { data: categories, error: catError } = await supabaseAdmin
-    .from('categories')
-    .select('id, slug')
-
+  // Fetch categories
+  const { data: categories, error: catError } = await supabaseAdmin.from('categories').select('id, slug')
   if (catError) return NextResponse.json({ error: catError.message }, { status: 500 })
-
   const slugToId: Record<string, string> = {}
   for (const c of categories ?? []) slugToId[c.slug] = c.id
 
-  // Delete all existing products
-  const { error: deleteError } = await supabaseAdmin
-    .from('products')
-    .delete()
-    .neq('id', '00000000-0000-0000-0000-000000000000')
+  // Fetch existing products (to preserve images, specs, featured, active)
+  const { data: existing } = await supabaseAdmin.from('products').select('id, name, category_id, images, specs, featured, active, warranty')
+  const existingMap: Record<string, any> = {}
+  for (const p of existing ?? []) existingMap[`${p.name}||${p.category_id}`] = p
 
-  if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 })
-
-  // Build rows and merge duplicates (same name + category_slug = sum stock)
-  const mergedMap: Record<string, { name: string; price: number; stock: number; category_id: string }> = {}
+  // Merge duplicate rows (same name + category = sum stock)
+  const mergedMap: Record<string, any> = {}
   const skipped = []
 
   for (const row of rows) {
@@ -49,31 +40,42 @@ export async function POST(req: NextRequest) {
       continue
     }
 
-    const key = `${name}||${slug}`
+    const key = `${name}||${category_id}`
     if (mergedMap[key]) {
-      // Same product — add stock
       mergedMap[key].stock += stock
     } else {
       mergedMap[key] = { name, price, stock, category_id }
     }
   }
 
-  const inserts = Object.values(mergedMap).map(p => ({
-    ...p,
-    images: [],
-    specs: {},
-    featured: false,
-    active: true,
-  }))
-
-  if (inserts.length === 0)
+  if (Object.keys(mergedMap).length === 0)
     return NextResponse.json({ error: 'No valid rows to insert', skipped }, { status: 400 })
 
-  const { error: insertError } = await supabaseAdmin
-    .from('products')
-    .insert(inserts)
+  let inserted = 0
+  let updated = 0
 
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
+  for (const [key, row] of Object.entries(mergedMap)) {
+    const existing_product = existingMap[key]
 
-  return NextResponse.json({ inserted: inserts.length, skipped })
+    if (existing_product) {
+      // UPDATE — preserve images, specs, featured, active, warranty
+      await supabaseAdmin.from('products').update({
+        price: row.price,
+        stock: row.stock,
+      }).eq('id', existing_product.id)
+      updated++
+    } else {
+      // INSERT — new product
+      await supabaseAdmin.from('products').insert({
+        ...row,
+        images: [],
+        specs: {},
+        featured: false,
+        active: true,
+      })
+      inserted++
+    }
+  }
+
+  return NextResponse.json({ inserted, updated, skipped })
 }
