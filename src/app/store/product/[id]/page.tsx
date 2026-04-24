@@ -69,6 +69,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <div style={{ fontSize: 13, color: inStock ? '#3fb950' : '#f85149' }}>
               {inStock ? `✓ In Stock (${product.stock} available)` : '✗ Out of Stock'}
             </div>
+            {product.warranty && (
+              <div style={{ fontSize: 13, color: '#e3b341', marginTop: 8 }}>
+                🛡️ Warranty: {product.warranty} days
+              </div>
+            )}
           </div>
 
           {Object.keys(product.specs || {}).length > 0 && (
