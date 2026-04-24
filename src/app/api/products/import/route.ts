@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     const stock = parseInt(row.stock)
     const slug = row.category_slug?.toString().trim()
     const category_id = slugToId[slug]
+    const warranty = row.warranty ? parseInt(row.warranty) : null
 
     if (!name || isNaN(price) || isNaN(stock)) {
       skipped.push({ row, reason: 'missing name/price/stock' })
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
     if (mergedMap[key]) {
       mergedMap[key].stock += stock
     } else {
-      mergedMap[key] = { name, price, stock, category_id }
+      mergedMap[key] = { name, price, stock, category_id, warranty }
     }
   }
 
@@ -58,10 +59,11 @@ export async function POST(req: NextRequest) {
     const existing_product = existingMap[key]
 
     if (existing_product) {
-      // UPDATE — preserve images, specs, featured, active, warranty
+      // UPDATE — preserve images, specs, featured, active
       await supabaseAdmin.from('products').update({
         price: row.price,
         stock: row.stock,
+        warranty: row.warranty ?? existing_product.warranty,
       }).eq('id', existing_product.id)
       updated++
     } else {
