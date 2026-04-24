@@ -215,6 +215,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
         stock: row['stock'] ?? '',
         category_slug,
         warranty: row['warranty'] ? parseInt(row['warranty']) : null,
+        description: (row['notes'] || '').toString().trim(),
       }
     }).filter(r => r.name)
 
