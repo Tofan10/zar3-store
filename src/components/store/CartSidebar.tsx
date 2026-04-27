@@ -8,6 +8,7 @@ export default function CartSidebar() {
   const { items, removeItem, updateQty, clearCart, total, count } = useCart()
   const [open, setOpen] = useState(false)
   const [ordered, setOrdered] = useState<'whatsapp' | 'facebook' | null>(null)
+  const [downloading, setDownloading] = useState(false)
 
   function buildOrderMessage() {
     const lines = items.map(i =>
@@ -33,99 +34,201 @@ export default function CartSidebar() {
     setTimeout(() => setOrdered(null), 400)
   }
 
-  function downloadQuote() {
-    const now = new Date()
-    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  async function downloadQuote() {
+    setDownloading(true)
+    try {
+      const jsPDFModule = await import('jspdf')
+      const autoTableModule = await import('jspdf-autotable')
+      const jsPDF = jsPDFModule.default
+      const autoTable = autoTableModule.default
 
-    const rows = items.map(({ product, quantity }) => `
-      <tr>
-        <td>${product.name}</td>
-        <td>${(product.category as any)?.name || ''}</td>
-        <td>${product.warranty ? product.warranty + ' Days' : '—'}</td>
-        <td style="text-align:center">${quantity}</td>
-        <td style="text-align:right">${product.price.toLocaleString()}</td>
-        <td style="text-align:right;font-weight:600">${(product.price * quantity).toLocaleString()}</td>
-      </tr>
-    `).join('')
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const pageW = doc.internal.pageSize.getWidth()  // 210mm
+      const pageH = doc.internal.pageSize.getHeight() // 297mm
+      const margin = 14
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; font-size: 13px; color: #222; padding: 40px; }
-          .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
-          .logo-area { display: flex; align-items: center; gap: 14px; }
-          .logo-img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
-          .company-name { font-size: 26px; font-weight: 800; color: #111; letter-spacing: -0.5px; }
-          .company-sub { font-size: 12px; color: #1a6fc4; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
-          .date { font-size: 12px; color: #666; text-align: right; }
-          table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-          thead tr { background: #f0f4f8; }
-          th { padding: 12px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #444; border-bottom: 2px solid #ddd; }
-          td { padding: 12px 14px; border-bottom: 1px solid #eee; vertical-align: middle; }
-          tr:last-child td { border-bottom: none; }
-          tr:nth-child(even) { background: #fafbfc; }
-          .total-row { margin-top: 24px; display: flex; justify-content: flex-end; }
-          .total-box { background: #f0f4f8; border-radius: 8px; padding: 16px 24px; min-width: 220px; }
-          .total-label { font-size: 13px; color: #666; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-          .total-value { font-size: 22px; font-weight: 800; color: #1a6fc4; text-align: center; }
-          .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #eee; font-size: 11px; color: #999; text-align: center; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="logo-area">
-            <img src="${LOGO_URL}" class="logo-img" alt="ZAR3" />
-            <div>
-              <div class="company-name">ZAR3 HARDWARE</div>
-              <div class="company-sub">Hardware Price Quotation</div>
-            </div>
-          </div>
-          <div class="date">${dateStr}</div>
-        </div>
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // HEADER BAND
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // Dark band
+      doc.setFillColor(15, 20, 30)
+      doc.rect(0, 0, pageW, 32, 'F')
 
-        <table>
-          <thead>
-            <tr>
-              <th>Item Description</th>
-              <th>Category</th>
-              <th>Warranty</th>
-              <th style="text-align:center">QTY</th>
-              <th style="text-align:right">Unit Price</th>
-              <th style="text-align:right">Total (EGP)</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+      // Accent blue line at bottom of header
+      doc.setFillColor(26, 111, 196)
+      doc.rect(0, 32, pageW, 1.2, 'F')
 
-        <div class="total-row">
-          <div class="total-box">
-            <div class="total-label">Total</div>
-            <div class="total-value">${total.toLocaleString()} EGP</div>
-          </div>
-        </div>
+      // Logo circle background
+      doc.setFillColor(255, 255, 255)
+      doc.circle(margin + 10, 16, 10, 'F')
 
-        <div class="footer">
-          ZAR3 Hardware · wa.me/201124424414 · facebook.com/profile.php?id=61554098374352
-        </div>
-      </body>
-      </html>
-    `
+      // Logo image
+      try {
+        const img = await loadImageAsBase64(LOGO_URL)
+        doc.addImage(img, 'JPEG', margin + 1, 7, 18, 18, undefined, 'FAST')
+      } catch {
+        // fallback: just the white circle
+      }
 
-    // ✅ Mobile-compatible download using Blob + <a download>
-    // بدل window.open + print اللي بيتبلوك على الموبايل
-    const blob = new Blob([html], { type: 'text/html' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `ZAR3-Quote-${Date.now()}.html`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+      // Company name
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(16)
+      doc.setTextColor(240, 245, 255)
+      doc.text('ZAR3 HARDWARE', margin + 24, 14)
+
+      // Subtitle
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(7.5)
+      doc.setTextColor(55, 138, 221)
+      doc.text('HARDWARE PRICE QUOTATION', margin + 24, 21)
+
+      // Date — right side
+      const now = new Date()
+      const dateStr = now.toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      })
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(7.5)
+      doc.setTextColor(160, 170, 185)
+      doc.text(dateStr, pageW - margin, 14, { align: 'right' })
+
+      // Quote ref number
+      const ref = `REF-${Date.now().toString().slice(-6)}`
+      doc.setFontSize(7)
+      doc.setTextColor(80, 100, 130)
+      doc.text(`Quotation #${ref}`, pageW - margin, 21, { align: 'right' })
+
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // TABLE
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      const tableRows = items.map(({ product, quantity }, idx) => [
+        String(idx + 1),
+        product.name,
+        (product.category as any)?.name || '—',
+        product.warranty ? `${product.warranty}d` : '—',
+        String(quantity),
+        `${product.price.toLocaleString()}`,
+        `${(product.price * quantity).toLocaleString()}`,
+      ])
+
+      autoTable(doc, {
+        startY: 38,
+        head: [['#', 'ITEM DESCRIPTION', 'CATEGORY', 'WARRANTY', 'QTY', 'UNIT PRICE', 'TOTAL (EGP)']],
+        body: tableRows,
+        theme: 'plain',
+        styles: {
+          fontSize: 8.5,
+          cellPadding: { top: 5, bottom: 5, left: 4, right: 4 },
+          textColor: [30, 35, 45],
+          lineColor: [220, 225, 235],
+          lineWidth: 0.25,
+          font: 'helvetica',
+          overflow: 'linebreak',
+          minCellHeight: 10,
+        },
+        headStyles: {
+          fillColor: [26, 111, 196],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 7.5,
+          cellPadding: { top: 5, bottom: 5, left: 4, right: 4 },
+          halign: 'left',
+        },
+        alternateRowStyles: {
+          fillColor: [245, 248, 252],
+        },
+        bodyStyles: {
+          fillColor: [255, 255, 255],
+        },
+        columnStyles: {
+          0: { cellWidth: 8,  halign: 'center', textColor: [120, 130, 150], fontSize: 7.5 },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 28, textColor: [80, 95, 120], fontSize: 8 },
+          3: { cellWidth: 20, halign: 'center', textColor: [80, 95, 120], fontSize: 8 },
+          4: { cellWidth: 10, halign: 'center', fontStyle: 'bold' },
+          5: { cellWidth: 24, halign: 'right', textColor: [60, 75, 100] },
+          6: { cellWidth: 28, halign: 'right', fontStyle: 'bold', textColor: [15, 90, 170] },
+        },
+        margin: { left: margin, right: margin },
+        // Draw a left accent line on each row
+        didDrawCell: (data) => {
+          if (data.section === 'body' && data.column.index === 0) {
+            doc.setFillColor(26, 111, 196)
+            doc.rect(data.cell.x, data.cell.y, 1.5, data.cell.height, 'F')
+          }
+        },
+      })
+
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // TOTALS SECTION
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      const tableEnd = (doc as any).lastAutoTable.finalY
+      const totalsY = tableEnd + 6
+
+      // Items count summary (left)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.setTextColor(120, 130, 150)
+      doc.text(`${count} item${count !== 1 ? 's' : ''} in this quotation`, margin, totalsY + 8)
+
+      // Total box (right)
+      const boxW = 72
+      const boxX = pageW - margin - boxW
+      const boxH = 22
+
+      // Shadow effect (slightly offset dark rect)
+      doc.setFillColor(200, 210, 225)
+      doc.roundedRect(boxX + 1, totalsY + 1, boxW, boxH, 3, 3, 'F')
+
+      // Main box with blue gradient simulation
+      doc.setFillColor(26, 111, 196)
+      doc.roundedRect(boxX, totalsY, boxW, boxH, 3, 3, 'F')
+
+      // "TOTAL" label
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(7)
+      doc.setTextColor(180, 210, 255)
+      doc.text('TOTAL AMOUNT', boxX + boxW / 2, totalsY + 7, { align: 'center' })
+
+      // Total value
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(14)
+      doc.setTextColor(255, 255, 255)
+      doc.text(`${total.toLocaleString()} EGP`, boxX + boxW / 2, totalsY + 17, { align: 'center' })
+
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // FOOTER
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // Footer band
+      doc.setFillColor(15, 20, 30)
+      doc.rect(0, pageH - 18, pageW, 18, 'F')
+
+      // Accent line top of footer
+      doc.setFillColor(26, 111, 196)
+      doc.rect(0, pageH - 18, pageW, 1, 'F')
+
+      // Footer text
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(7.5)
+      doc.setTextColor(120, 140, 170)
+      doc.text('ZAR3 Hardware', margin, pageH - 9)
+
+      doc.setTextColor(55, 138, 221)
+      doc.text('wa.me/201124424414', pageW / 2, pageH - 9, { align: 'center' })
+
+      doc.setTextColor(120, 140, 170)
+      doc.text('fb.com/ZAR3Hardware', pageW - margin, pageH - 9, { align: 'right' })
+
+      // ── Save ──
+      doc.save(`ZAR3-Quote-${ref}.pdf`)
+
+    } catch (err) {
+      console.error('PDF generation failed:', err)
+      alert('حصل خطأ أثناء إنشاء الـ PDF، جرب تاني.')
+    } finally {
+      setDownloading(false)
+    }
   }
 
   return (
@@ -301,16 +404,22 @@ export default function CartSidebar() {
                       >
                         <FacebookIcon /> Order via Facebook
                       </button>
-                      <button onClick={downloadQuote} style={{
-                        background: 'none', border: '1px solid #378ADD', borderRadius: 10,
-                        color: '#378ADD', padding: '11px', fontSize: 14, fontWeight: 500,
-                        cursor: 'pointer', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', gap: 8, transition: 'all 0.15s'
-                      }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#0c2a4a' }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+                      <button
+                        onClick={downloadQuote}
+                        disabled={downloading}
+                        style={{
+                          background: downloading ? '#0c2a4a' : 'none',
+                          border: '1px solid #378ADD', borderRadius: 10,
+                          color: '#378ADD', padding: '11px', fontSize: 14, fontWeight: 500,
+                          cursor: downloading ? 'not-allowed' : 'pointer',
+                          display: 'flex', alignItems: 'center',
+                          justifyContent: 'center', gap: 8, transition: 'all 0.15s',
+                          opacity: downloading ? 0.7 : 1
+                        }}
+                        onMouseEnter={e => { if (!downloading) e.currentTarget.style.background = '#0c2a4a' }}
+                        onMouseLeave={e => { if (!downloading) e.currentTarget.style.background = 'none' }}
                       >
-                        📄 Download Price Quote
+                        {downloading ? '⏳ Generating PDF...' : '📄 Download Price Quote'}
                       </button>
                     </div>
                     <p style={{ color: '#6e7681', fontSize: 11, textAlign: 'center', marginTop: 10 }}>
@@ -325,6 +434,24 @@ export default function CartSidebar() {
       )}
     </>
   )
+}
+
+// ── Helper: load image URL → base64 (needed for jsPDF) ──
+function loadImageAsBase64(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0)
+      resolve(canvas.toDataURL('image/jpeg'))
+    }
+    img.onerror = reject
+    img.src = url
+  })
 }
 
 const qtyBtn: React.CSSProperties = {
