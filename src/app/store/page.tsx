@@ -3,6 +3,8 @@ import { Product, Category } from '@/lib/types'
 import Link from 'next/link'
 import SearchableProducts from './SearchableProducts'
 
+const LOGO_URL = 'https://gumjhqrfsvngjppciowu.supabase.co/storage/v1/object/sign/logo/481354976_122205531740136612_8758662314822517452_n.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV84MDU0Y2IzOC04OWQ3LTQzODgtODM4ZC02MmE4MGJmODE3NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJsb2dvLzQ4MTM1NDk3Nl8xMjIyMDU1MzE3NDAxMzY2MTJfODc1ODY2MjMxNDgyMjUxNzQ1Ml9uLmpwZyIsImlhdCI6MTc3NzI1Mjg2NiwiZXhwIjoyMDkyNjEyODY2fQ.DktxglH6FH6lD5_5wMCoOs4yZPtnGAotyvike91iPqY'
+
 export const revalidate = 60
 
 async function getData() {
@@ -20,6 +22,19 @@ export default async function StorePage() {
       {/* HERO SECTION */}
       <div style={{ background: '#080c12', borderBottom: '1px solid #21262d', textAlign: 'center' }}
         className="px-4 py-10 sm:py-16">
+
+        {/* Logo with glow */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+          <img
+            src={LOGO_URL}
+            alt="ZAR3"
+            style={{
+              width: 90, height: 90, borderRadius: '50%', objectFit: 'cover',
+              boxShadow: '0 0 20px 6px #378ADD88, 0 0 40px 10px #1a6fc444',
+            }}
+          />
+        </div>
+
         <h1 className="text-3xl sm:text-5xl font-semibold tracking-tight mb-3"
           style={{ color: '#e6edf3' }}>
           ZAR<span style={{ color: '#378ADD' }}>3</span> Hardware
@@ -45,7 +60,6 @@ export default async function StorePage() {
 
       {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-
         {/* CATEGORIES GRID — desktop only */}
         <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-10">
           {categories.map((cat: Category) => (
@@ -58,7 +72,6 @@ export default async function StorePage() {
             </Link>
           ))}
         </div>
-
         <SearchableProducts products={products} />
       </div>
     </div>
