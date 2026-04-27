@@ -55,7 +55,9 @@ export async function POST(req: NextRequest) {
 
   let inserted = 0
   let updated = 0
+  let deleted = 0
 
+  // Update or insert
   for (const [key, row] of Object.entries(mergedMap) as any) {
     const existing_product = existingMap[key]
 
@@ -79,5 +81,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ inserted, updated, skipped })
+  // Delete products not in Excel
+  for (const [key, existing_product] of Object.entries(existingMap) as any) {
+    if (!mergedMap[key]) {
+      await supabaseAdmin.from('products').delete().eq('id', existing_product.id)
+      deleted++
+    }
+  }
+
+  return NextResponse.json({ inserted, updated, deleted, skipped })
 }
