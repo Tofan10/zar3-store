@@ -13,16 +13,20 @@ export default function SearchableProducts({ products }: { products: Product[] }
 
   return (
     <div>
-      <div style={{ marginBottom: 32 }}>
+      {/* Sticky search bar */}
+      <div style={{
+        position: 'sticky', top: 57, zIndex: 90,
+        background: '#0d1117', paddingBottom: 16, paddingTop: 8,
+      }}>
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder="🔍  Search products..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{
             width: '100%', background: '#161b22', border: '1px solid #21262d',
             borderRadius: 10, padding: '12px 16px', fontSize: 15, color: '#e6edf3',
-            outline: 'none'
+            outline: 'none', boxSizing: 'border-box'
           }}
           onFocus={e => e.target.style.borderColor = '#378ADD'}
           onBlur={e => e.target.style.borderColor = '#21262d'}
@@ -46,7 +50,6 @@ export default function SearchableProducts({ products }: { products: Product[] }
       <h2 style={{ color: '#e6edf3', fontSize: 20, fontWeight: 500, marginBottom: 20 }}>
         {search ? 'Search Results' : 'All Products'}
       </h2>
-
       {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', color: '#8b949e', padding: '60px 0', fontSize: 15 }}>
           No products found for "{search}"
