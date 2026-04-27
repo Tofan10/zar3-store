@@ -2,6 +2,8 @@
 import { useCart } from '@/lib/CartContext'
 import { useState } from 'react'
 
+const LOGO_URL = 'https://gumjhqrfsvngjppciowu.supabase.co/storage/v1/object/sign/logo/481354976_122205531740136612_8758662314822517452_n.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV84MDU0Y2IzOC04OWQ3LTQzODgtODM4ZC02MmE4MGJmODE3NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJsb2dvLzQ4MTM1NDk3Nl8xMjIyMDU1MzE3NDAxMzY2MTJfODc1ODY2MjMxNDgyMjUxNzQ1Ml9uLmpwZyIsImlhdCI6MTc3NzI1Mjg2NiwiZXhwIjoyMDkyNjEyODY2fQ.DktxglH6FH6lD5_5wMCoOs4yZPtnGAotyvike91iPqY'
+
 export default function CartSidebar() {
   const { items, removeItem, updateQty, clearCart, total, count } = useCart()
   const [open, setOpen] = useState(false)
@@ -56,7 +58,7 @@ export default function CartSidebar() {
           body { font-family: Arial, sans-serif; font-size: 13px; color: #222; padding: 40px; }
           .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
           .logo-area { display: flex; align-items: center; gap: 14px; }
-          .logo { width: 64px; height: 64px; background: linear-gradient(135deg, #1a6fc4, #85b7eb); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: white; }
+          .logo-img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
           .company-name { font-size: 26px; font-weight: 800; color: #111; letter-spacing: -0.5px; }
           .company-sub { font-size: 12px; color: #1a6fc4; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
           .date { font-size: 12px; color: #666; text-align: right; }
@@ -76,7 +78,7 @@ export default function CartSidebar() {
       <body>
         <div class="header">
           <div class="logo-area">
-            <div class="logo">Z3</div>
+            <img src="${LOGO_URL}" class="logo-img" alt="ZAR3" />
             <div>
               <div class="company-name">ZAR3 HARDWARE</div>
               <div class="company-sub">Hardware Price Quotation</div>
