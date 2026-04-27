@@ -31,6 +31,96 @@ export default function CartSidebar() {
     setTimeout(() => setOrdered(null), 400)
   }
 
+  function downloadQuote() {
+    const now = new Date()
+    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+
+    const rows = items.map(({ product, quantity }) => `
+      <tr>
+        <td>${product.name}</td>
+        <td>${(product.category as any)?.name || ''}</td>
+        <td>${product.warranty ? product.warranty + ' Days' : '—'}</td>
+        <td style="text-align:center">${quantity}</td>
+        <td style="text-align:right">${product.price.toLocaleString()}</td>
+        <td style="text-align:right;font-weight:600">${(product.price * quantity).toLocaleString()}</td>
+      </tr>
+    `).join('')
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; font-size: 13px; color: #222; padding: 40px; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+          .logo-area { display: flex; align-items: center; gap: 14px; }
+          .logo { width: 64px; height: 64px; background: linear-gradient(135deg, #1a6fc4, #85b7eb); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; color: white; }
+          .company-name { font-size: 26px; font-weight: 800; color: #111; letter-spacing: -0.5px; }
+          .company-sub { font-size: 12px; color: #1a6fc4; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
+          .date { font-size: 12px; color: #666; text-align: right; }
+          table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+          thead tr { background: #f0f4f8; }
+          th { padding: 12px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #444; border-bottom: 2px solid #ddd; }
+          td { padding: 12px 14px; border-bottom: 1px solid #eee; vertical-align: middle; }
+          tr:last-child td { border-bottom: none; }
+          tr:nth-child(even) { background: #fafbfc; }
+          .total-row { margin-top: 24px; display: flex; justify-content: flex-end; }
+          .total-box { background: #f0f4f8; border-radius: 8px; padding: 16px 24px; min-width: 220px; }
+          .total-label { font-size: 13px; color: #666; text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+          .total-value { font-size: 22px; font-weight: 800; color: #1a6fc4; text-align: center; }
+          .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #eee; font-size: 11px; color: #999; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo-area">
+            <div class="logo">Z3</div>
+            <div>
+              <div class="company-name">ZAR3 HARDWARE</div>
+              <div class="company-sub">Hardware Price Quotation</div>
+            </div>
+          </div>
+          <div class="date">${dateStr}</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Item Description</th>
+              <th>Category</th>
+              <th>Warranty</th>
+              <th style="text-align:center">QTY</th>
+              <th style="text-align:right">Unit Price</th>
+              <th style="text-align:right">Total (EGP)</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+
+        <div class="total-row">
+          <div class="total-box">
+            <div class="total-label">Total</div>
+            <div class="total-value">${total.toLocaleString()} EGP</div>
+          </div>
+        </div>
+
+        <div class="footer">
+          ZAR3 Hardware · wa.me/201124424414 · facebook.com/profile.php?id=61554098374352
+        </div>
+      </body>
+      </html>
+    `
+
+    const win = window.open('', '_blank')
+    if (!win) return
+    win.document.write(html)
+    win.document.close()
+    win.focus()
+    setTimeout(() => { win.print(); win.close() }, 500)
+  }
+
   return (
     <>
       <button
@@ -85,7 +175,6 @@ export default function CartSidebar() {
               </div>
             </div>
 
-            {/* Thank you screen */}
             {ordered ? (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
                 <div style={{ fontSize: 64, marginBottom: 20 }}>🎉</div>
@@ -204,6 +293,17 @@ export default function CartSidebar() {
                         onMouseLeave={e => e.currentTarget.style.background = '#1877f2'}
                       >
                         <FacebookIcon /> Order via Facebook
+                      </button>
+                      <button onClick={downloadQuote} style={{
+                        background: 'none', border: '1px solid #378ADD', borderRadius: 10,
+                        color: '#378ADD', padding: '11px', fontSize: 14, fontWeight: 500,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', gap: 8, transition: 'all 0.15s'
+                      }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#0c2a4a' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+                      >
+                        📄 Download Price Quote
                       </button>
                     </div>
                     <p style={{ color: '#6e7681', fontSize: 11, textAlign: 'center', marginTop: 10 }}>
