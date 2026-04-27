@@ -115,12 +115,17 @@ export default function CartSidebar() {
       </html>
     `
 
-    const win = window.open('', '_blank')
-    if (!win) return
-    win.document.write(html)
-    win.document.close()
-    win.focus()
-    setTimeout(() => { win.print(); win.close() }, 500)
+    // ✅ Mobile-compatible download using Blob + <a download>
+    // بدل window.open + print اللي بيتبلوك على الموبايل
+    const blob = new Blob([html], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `ZAR3-Quote-${Date.now()}.html`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   return (
