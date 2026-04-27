@@ -5,7 +5,7 @@ import { read, utils } from 'xlsx'
 import { Product, Category } from '@/lib/types'
 
 type Tab = 'stats' | 'products' | 'categories'
-
+  
 export default function AdminDashboard() {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('stats')
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
 
 function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleActive, onToggleFeatured, showForm, editingProduct, onFormClose }: any) {
   const [importing, setImporting] = useState(false)
-  const [importResult, setImportResult] = useState<{ inserted?: number; updated?: number; skipped?: any[]; error?: string } | null>(null)
+  const [importResult, setImportResult] = useState<{ inserted?: number; updated?: number; deleted?: number; skipped?: any[]; error?: string } | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
 
   const slugMap: Record<string, string> = {
@@ -264,7 +264,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
           <span style={{ color: importResult.error ? '#f85149' : '#3fb950', fontSize: 13 }}>
             {importResult.error
               ? `❌ Error: ${importResult.error}`
-              : `✅ Updated ${importResult.updated ?? 0}, Added ${importResult.inserted ?? 0}${importResult.skipped?.length ? ` (${importResult.skipped.length} skipped)` : ''}`
+              : `✅ Updated ${importResult.updated ?? 0}, Added ${importResult.inserted ?? 0}, Deleted ${importResult.deleted ?? 0}${importResult.skipped?.length ? ` (${importResult.skipped.length} skipped)` : ''}`
             }
           </span>
           <button onClick={() => setImportResult(null)} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 16 }}>×</button>
