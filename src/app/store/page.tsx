@@ -45,9 +45,9 @@ export default async function StorePage() {
 
       {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        
-        {/* CATEGORIES GRID */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-10">
+
+        {/* CATEGORIES GRID — desktop only */}
+        <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-10">
           {categories.map((cat: Category) => (
             <Link key={cat.id} href={`/store/category/${cat.slug}`}
               className="block text-center rounded-xl p-4 sm:p-5 transition-colors duration-150"
