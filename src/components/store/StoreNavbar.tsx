@@ -7,6 +7,7 @@ const LOGO_URL = 'https://gumjhqrfsvngjppciowu.supabase.co/storage/v1/object/sig
 
 export default function StoreNavbar({ categories }: { categories: any[] }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <>
@@ -15,7 +16,18 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
           0%, 100% { box-shadow: 0 0 8px 2px #378ADD88, 0 0 16px 4px #1a6fc444; }
           50% { box-shadow: 0 0 16px 4px #378ADDcc, 0 0 32px 8px #1a6fc488; }
         }
+        .cat-link { color: #8b949e; font-size: 13px; text-decoration: none; padding: 7px 12px; border-radius: 6px; border: 1px solid #21262d; display: flex; align-items: center; gap: 6px; transition: all 0.15s; white-space: nowrap; }
+        .cat-link:hover { color: #e6edf3; border-color: #378ADD; background: #0d1b2a; }
+        .desktop-cat-sidebar { position: fixed; top: 67px; right: 0; width: 190px; height: calc(100vh - 67px); background: #080c12; border-left: 1px solid #21262d; padding: 12px 10px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; z-index: 90; scrollbar-width: none; }
+        .desktop-cat-sidebar::-webkit-scrollbar { display: none; }
+        .sidebar-cat-link { color: #8b949e; font-size: 13px; text-decoration: none; padding: 8px 12px; border-radius: 6px; border: 1px solid transparent; display: flex; align-items: center; gap: 8px; transition: all 0.15s; }
+        .sidebar-cat-link:hover { color: #e6edf3; border-color: #21262d; background: #0d1117; }
+        .sidebar-cat-link.active { color: #378ADD; border-color: #1a3a5c; background: #0d1b2a; }
+        @media (max-width: 768px) { .desktop-cat-sidebar { display: none !important; } }
+        @media (min-width: 769px) { .mobile-only { display: none !important; } }
       `}</style>
+
+      {/* ── TOP NAVBAR ── */}
       <nav style={{ background: '#080c12', borderBottom: '1px solid #21262d', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
@@ -24,38 +36,19 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
             <img
               src={LOGO_URL}
               alt="ZAR3"
-              style={{
-                width: 38, height: 38, borderRadius: '50%', objectFit: 'cover',
-                animation: 'glow 2.5s ease-in-out infinite',
-              }}
+              style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', animation: 'glow 2.5s ease-in-out infinite' }}
             />
             <span style={{ fontSize: 17, fontWeight: 500, color: '#e6edf3' }}>
               ZAR<span style={{ color: '#378ADD' }}>3</span> Hardware
             </span>
           </Link>
 
-          {/* Desktop categories */}
-          <div className="hidden md:flex" style={{
-            flex: 1, margin: '0 16px', overflowX: 'auto', gap: 6,
-            display: 'flex', alignItems: 'center', flexWrap: 'nowrap',
-            scrollbarWidth: 'none', msOverflowStyle: 'none',
-          }}>
-            <Link href="/store" style={{ color: '#8b949e', fontSize: 13, textDecoration: 'none', padding: '5px 10px', borderRadius: 6, border: '1px solid #21262d', flexShrink: 0 }}>
-              All
-            </Link>
-            {categories.map((cat: any) => (
-              <Link key={cat.id} href={`/store/category/${cat.slug}`}
-                style={{ color: '#8b949e', fontSize: 13, textDecoration: 'none', padding: '5px 10px', borderRadius: 6, border: '1px solid #21262d', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                {cat.icon} {cat.name}
-              </Link>
-            ))}
-          </div>
-
-          {/* Right: Cart + Hamburger */}
+          {/* Right: Cart + Hamburger (mobile) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
             <CartSidebar />
+            {/* Mobile hamburger */}
             <button
-              className="md:hidden"
+              className="mobile-only"
               onClick={() => setMenuOpen(!menuOpen)}
               style={{
                 background: 'none', border: '1px solid #21262d', borderRadius: 6,
@@ -68,7 +61,7 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
 
         {/* Mobile dropdown */}
         {menuOpen && (
-          <div className="md:hidden" style={{
+          <div className="mobile-only" style={{
             background: '#080c12', borderTop: '1px solid #21262d',
             padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8,
             maxHeight: '70vh', overflowY: 'auto'
@@ -87,6 +80,22 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
           </div>
         )}
       </nav>
+
+      {/* ── DESKTOP SIDEBAR (categories vertical on right) ── */}
+      <aside className="desktop-cat-sidebar">
+        {/* Section label */}
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#3d4b5c', textTransform: 'uppercase', letterSpacing: 1, padding: '4px 12px 8px', borderBottom: '1px solid #161b22', marginBottom: 4 }}>
+          Categories
+        </div>
+        <Link href="/store" className="sidebar-cat-link">
+          🗂️ All
+        </Link>
+        {categories.map((cat: any) => (
+          <Link key={cat.id} href={`/store/category/${cat.slug}`} className="sidebar-cat-link">
+            {cat.icon} {cat.name}
+          </Link>
+        ))}
+      </aside>
     </>
   )
 }
