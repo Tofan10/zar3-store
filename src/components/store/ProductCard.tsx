@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Product } from '@/lib/types'
 import { useCart } from '@/lib/CartContext'
 import { useState } from 'react'
@@ -32,16 +33,21 @@ export default function ProductCard({ product }: { product: Product }) {
         onMouseLeave={e => { if (cartQty === 0) e.currentTarget.style.borderColor = '#21262d' }}
       >
         {/* Image */}
-        <div style={{ background: '#0d1117', height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: 12 }}>
+        <div style={{ background: '#0d1117', height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
           {product.images?.[0] ? (
-            <img src={product.images[0]} alt={product.name} referrerPolicy="no-referrer"
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              style={{ objectFit: 'contain', padding: 12 }}
+              sizes="(max-width: 768px) 50vw, 220px"
+            />
           ) : (
             <span style={{ fontSize: 48, opacity: 0.3 }}>🖥️</span>
           )}
 
           {/* Badges */}
-          <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', flexDirection: 'column', gap: 4, zIndex: 1 }}>
             {product.featured && (
               <span style={{ background: '#1a6fc4', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 500 }}>Featured</span>
             )}
@@ -50,7 +56,7 @@ export default function ProductCard({ product }: { product: Product }) {
             )}
           </div>
 
-          <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+          <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end', zIndex: 1 }}>
             {product.warranty && (
               <span style={{ background: '#2d2208', color: '#e3b341', fontSize: 10, padding: '2px 8px', borderRadius: 20 }}>🛡️ {product.warranty}d</span>
             )}
