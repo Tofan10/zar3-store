@@ -13,13 +13,9 @@ export async function POST(req: NextRequest) {
   const base64 = buffer.toString('base64')
   const dataUri = `data:${file.type};base64,${base64}`
 
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME
-  const apiKey = process.env.CLOUDINARY_API_KEY
-  const apiSecret = process.env.CLOUDINARY_API_SECRET
-
-  if (!cloudName || !apiKey || !apiSecret) {
-    return NextResponse.json({ error: 'Cloudinary not configured' }, { status: 500 })
-  }
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'dpqc6emvh'
+  const apiKey = process.env.CLOUDINARY_API_KEY || '441417361158369'
+  const apiSecret = process.env.CLOUDINARY_API_SECRET || 'uar_60a_7ZjtkrJqkfBG_KCz3eE'
 
   const timestamp = Math.round(Date.now() / 1000)
   const folder = 'zar3-products'
