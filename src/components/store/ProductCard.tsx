@@ -1,5 +1,4 @@
 'use client'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Product } from '@/lib/types'
 import { useCart } from '@/lib/CartContext'
@@ -21,33 +20,47 @@ export default function ProductCard({ product }: { product: Product }) {
   }
 
   return (
-    <Link href={`/store/product/${product.id}`} style={{ textDecoration: 'none' }}>
+    <Link href={`/store/product/${product.id}`} style={{ textDecoration: 'none', height: '100%', display: 'block' }}>
       <div style={{
-        background: '#161b22', border: '1px solid #21262d', borderRadius: 12,
-        overflow: 'hidden', display: 'flex', flexDirection: 'column',
-        transition: 'border-color 0.15s', height: '100%'
+        background: '#161b22',
+        border: cartQty > 0 ? '2px solid #378ADD' : '1px solid #21262d',
+        borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column',
+        transition: 'border-color 0.15s', height: '100%',
+        opacity: inStock ? 1 : 0.7,
       }}
-        onMouseEnter={e => (e.currentTarget.style.borderColor = '#378ADD')}
-        onMouseLeave={e => (e.currentTarget.style.borderColor = '#21262d')}
+        onMouseEnter={e => { if (cartQty === 0) e.currentTarget.style.borderColor = '#378ADD' }}
+        onMouseLeave={e => { if (cartQty === 0) e.currentTarget.style.borderColor = '#21262d' }}
       >
-        <div style={{ background: '#0d1117', height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        {/* Image */}
+        <div style={{ background: '#0d1117', height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: 12 }}>
           {product.images?.[0] ? (
-            <Image src={product.images[0]} alt={product.name} fill style={{ objectFit: 'contain', padding: 12 }} />
+            <img src={product.images[0]} alt={product.name} referrerPolicy="no-referrer"
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
           ) : (
             <span style={{ fontSize: 48, opacity: 0.3 }}>🖥️</span>
           )}
-          {product.featured && (
-            <div style={{ position: 'absolute', top: 8, left: 8, background: '#1a6fc4', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 500 }}>Featured</div>
-          )}
-          {!inStock && (
-            <div style={{ position: 'absolute', top: 8, right: 8, background: '#6e2c2c', color: '#ffa8a8', fontSize: 10, padding: '2px 8px', borderRadius: 20 }}>Out of Stock</div>
-          )}
-          {cartQty > 0 && inStock && (
-            <div style={{ position: 'absolute', bottom: 8, right: 8, background: '#1a6fc4', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20 }}>
-              {cartQty} in cart
-            </div>
-          )}
+
+          {/* Badges */}
+          <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {product.featured && (
+              <span style={{ background: '#1a6fc4', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 500 }}>Featured</span>
+            )}
+            {!inStock && (
+              <span style={{ background: '#6e2c2c', color: '#ffa8a8', fontSize: 10, padding: '2px 8px', borderRadius: 20 }}>Out of Stock</span>
+            )}
+          </div>
+
+          <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+            {product.warranty && (
+              <span style={{ background: '#2d2208', color: '#e3b341', fontSize: 10, padding: '2px 8px', borderRadius: 20 }}>🛡️ {product.warranty}d</span>
+            )}
+            {cartQty > 0 && inStock && (
+              <span style={{ background: '#0c2a4a', color: '#85b7eb', fontSize: 10, padding: '2px 8px', borderRadius: 20 }}>{cartQty} in cart</span>
+            )}
+          </div>
         </div>
+
+        {/* Content */}
         <div style={{ padding: 14, flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
           {product.category && (
             <div style={{ fontSize: 11, color: '#378ADD', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -58,19 +71,16 @@ export default function ProductCard({ product }: { product: Product }) {
           {product.description && (
             <div style={{ fontSize: 12, color: '#8b949e', lineHeight: 1.5 }}>{product.description}</div>
           )}
-          {product.specs && Object.keys(product.specs).length > 0 && (
-            <div style={{ fontSize: 11, color: '#8b949e', marginTop: 4 }}>
-              {Object.entries(product.specs).slice(0, 3).map(([k, v]) => (
-                <div key={k}><span style={{ color: '#6e7681' }}>{k}:</span> {String(v)}</div>
-              ))}
-            </div>
-          )}
-          <div style={{ marginTop: 'auto', paddingTop: 10 }}>
-            <div style={{ fontSize: 18, fontWeight: 600, color: '#3fb950', marginBottom: 4 }}>
-              {product.price.toLocaleString()} EGP
-            </div>
-            <div style={{ fontSize: 11, color: inStock ? '#3fb950' : '#f85149', marginBottom: 10 }}>
-              {inStock ? `In Stock (${product.stock} available)` : 'Out of Stock'}
+
+          {/* Price + Stock + Button */}
+          <div style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid #21262d' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div style={{ fontSize: 18, fontWeight: 600, color: '#3fb950' }}>
+                {product.price.toLocaleString()} EGP
+              </div>
+              <div style={{ fontSize: 11, color: inStock ? '#3fb950' : '#f85149' }}>
+                {inStock ? `In Stock (${product.stock})` : 'Out of Stock'}
+              </div>
             </div>
             <button
               onClick={handleAdd}
