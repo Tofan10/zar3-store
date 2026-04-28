@@ -2,7 +2,6 @@ import { supabase } from '@/lib/supabase'
 import { Product } from '@/lib/types'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import AddToCartButton from './AddToCartButton'
 
 export const revalidate = 60
@@ -37,11 +36,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         <span style={{ color: '#e6edf3', fontSize: 13 }}>{product.name}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, marginBottom: 48 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, marginBottom: 48 }} className="product-grid">
         <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 16, overflow: 'hidden' }}>
           {product.images?.[0] ? (
-            <div style={{ position: 'relative', height: 380 }}>
-              <Image src={product.images[0]} alt={product.name} fill style={{ objectFit: 'contain', padding: 24 }} />
+            <div style={{ height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+              <img src={product.images[0]} alt={product.name} referrerPolicy="no-referrer"
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
             </div>
           ) : (
             <div style={{ height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 80, opacity: 0.2 }}>🖥️</div>
@@ -49,8 +49,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           {product.images?.length > 1 && (
             <div style={{ display: 'flex', gap: 8, padding: '12px 16px', borderTop: '1px solid #21262d' }}>
               {product.images.map((img: string, i: number) => (
-                <div key={i} style={{ width: 60, height: 60, position: 'relative', border: '1px solid #21262d', borderRadius: 8, overflow: 'hidden' }}>
-                  <Image src={img} alt="" fill style={{ objectFit: 'contain' }} />
+                <div key={i} style={{ width: 60, height: 60, border: '1px solid #21262d', borderRadius: 8, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src={img} alt="" referrerPolicy="no-referrer"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
               ))}
             </div>
@@ -112,8 +113,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             {related.map((p: Product) => (
               <Link key={p.id} href={`/store/product/${p.id}`} style={{ textDecoration: 'none' }}>
                 <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 12, overflow: 'hidden' }}>
-                  <div style={{ background: '#0d1117', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                    {p.images?.[0] ? <Image src={p.images[0]} alt={p.name} fill style={{ objectFit: 'contain', padding: 12 }} /> : <span style={{ fontSize: 40, opacity: 0.2 }}>🖥️</span>}
+                  <div style={{ background: '#0d1117', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
+                    {p.images?.[0]
+                      ? <img src={p.images[0]} alt={p.name} referrerPolicy="no-referrer" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                      : <span style={{ fontSize: 40, opacity: 0.2 }}>🖥️</span>}
                   </div>
                   <div style={{ padding: 12 }}>
                     <div style={{ color: '#e6edf3', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>{p.name}</div>
