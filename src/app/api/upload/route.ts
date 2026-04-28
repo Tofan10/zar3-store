@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
 import { checkAdminAuth } from '@/lib/auth'
-import { v4 as uuidv4 } from 'uuid'
 
 export async function POST(req: NextRequest) {
   if (!await checkAdminAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -10,20 +8,44 @@ export async function POST(req: NextRequest) {
   const file = formData.get('file') as File
   if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
 
-  const ext = file.name.split('.').pop()
-  const filename = `${uuidv4()}.${ext}`
   const bytes = await file.arrayBuffer()
   const buffer = Buffer.from(bytes)
+  const base64 = buffer.toString('base64')
+  const dataUri = `data:${file.type};base64,${base64}`
 
-  const { error } = await supabaseAdmin.storage
-    .from('product-images')
-    .upload(filename, buffer, { contentType: file.type, upsert: false })
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+  const apiKey = process.env.CLOUDINARY_API_KEY
+  const apiSecret = process.env.CLOUDINARY_API_SECRET
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!cloudName || !apiKey || !apiSecret) {
+    return NextResponse.json({ error: 'Cloudinary not configured' }, { status: 500 })
+  }
 
-  const { data } = supabaseAdmin.storage
-    .from('product-images')
-    .getPublicUrl(filename)
+  const timestamp = Math.round(Date.now() / 1000)
+  const folder = 'zar3-products'
 
-  return NextResponse.json({ url: data.publicUrl })
+  // Generate signature
+  const crypto = await import('crypto')
+  const signatureString = `folder=${folder}&timestamp=${timestamp}${apiSecret}`
+  const signature = crypto.createHash('sha1').update(signatureString).digest('hex')
+
+  const uploadData = new FormData()
+  uploadData.append('file', dataUri)
+  uploadData.append('api_key', apiKey)
+  uploadData.append('timestamp', timestamp.toString())
+  uploadData.append('signature', signature)
+  uploadData.append('folder', folder)
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    method: 'POST',
+    body: uploadData,
+  })
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    return NextResponse.json({ error: data.error?.message || 'Upload failed' }, { status: 500 })
+  }
+
+  return NextResponse.json({ url: data.secure_url })
 }
