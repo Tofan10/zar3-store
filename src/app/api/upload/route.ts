@@ -24,9 +24,9 @@ export async function POST(req: NextRequest) {
   const timestamp = Math.round(Date.now() / 1000)
   const folder = 'zar3-products'
 
-  // Generate signature
   const crypto = await import('crypto')
-  const signatureString = `folder=${folder}&timestamp=${timestamp}${apiSecret}`
+  // الترتيب الأبجدي مهم جداً
+  const signatureString = `folder=${folder}&timestamp=${timestamp}&${apiSecret}`
   const signature = crypto.createHash('sha1').update(signatureString).digest('hex')
 
   const uploadData = new FormData()
