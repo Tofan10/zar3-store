@@ -37,37 +37,49 @@ export default function SearchableProducts({ products }: { products: Product[] }
         position: 'sticky', top: 57, zIndex: 90,
         background: '#0d1117', paddingBottom: 16, paddingTop: 8,
       }}>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <input
-            type="text"
-            placeholder="🔍  Search products..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{
-              flex: 1, background: '#161b22', border: '1px solid #21262d',
-              borderRadius: 10, padding: '12px 16px', fontSize: 15, color: '#e6edf3',
-              outline: 'none', boxSizing: 'border-box'
-            }}
-            onFocus={e => e.target.style.borderColor = '#378ADD'}
-            onBlur={e => e.target.style.borderColor = '#21262d'}
-          />
-          <select
-            value={sort}
-            onChange={e => setSort(e.target.value as SortOption)}
-            style={{
-              background: '#161b22', border: '1px solid #21262d',
-              borderRadius: 10, padding: '12px 14px', fontSize: 13,
-              color: '#e6edf3', outline: 'none', cursor: 'pointer',
-              flexShrink: 0
-            }}
-          >
-            <option value="default">Default</option>
-            <option value="price_asc">Price ↑</option>
-            <option value="price_desc">Price ↓</option>
-            <option value="name_asc">Name A-Z</option>
-            <option value="stock_desc">Most Stock</option>
-          </select>
+        {/* Search */}
+        <input
+          type="text"
+          placeholder="🔍  Search products..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            width: '100%', background: '#161b22', border: '1px solid #21262d',
+            borderRadius: 10, padding: '12px 16px', fontSize: 15, color: '#e6edf3',
+            outline: 'none', boxSizing: 'border-box', marginBottom: 8
+          }}
+          onFocus={e => e.target.style.borderColor = '#378ADD'}
+          onBlur={e => e.target.style.borderColor = '#21262d'}
+        />
+
+        {/* Sort row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: '#8b949e', fontSize: 13, flexShrink: 0 }}>Sort:</span>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {([
+              { value: 'default', label: 'Default' },
+              { value: 'price_asc', label: 'Price ↑' },
+              { value: 'price_desc', label: 'Price ↓' },
+              { value: 'name_asc', label: 'A-Z' },
+              { value: 'stock_desc', label: 'Stock' },
+            ] as { value: SortOption; label: string }[]).map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setSort(opt.value)}
+                style={{
+                  background: sort === opt.value ? '#0c2a4a' : '#161b22',
+                  border: `1px solid ${sort === opt.value ? '#378ADD' : '#21262d'}`,
+                  color: sort === opt.value ? '#85b7eb' : '#8b949e',
+                  borderRadius: 6, padding: '5px 10px', fontSize: 12,
+                  cursor: 'pointer', whiteSpace: 'nowrap'
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
+
         {search && (
           <div style={{ color: '#8b949e', fontSize: 13, marginTop: 8 }}>
             {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"
