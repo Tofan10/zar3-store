@@ -169,6 +169,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<{ inserted?: number; updated?: number; deleted?: number; skipped?: any[]; error?: string } | null>(null)
   const importRef = useRef<HTMLInputElement>(null)
+  const productRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const slugMap: Record<string, string> = {
     'Processors (CPU)': 'processors-cpu',
@@ -186,6 +187,13 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
     'Mousepad': 'mousepad',
     'Accessories': 'accessories',
     'PC Builds': 'pc-builds',
+  }
+
+  function handleEdit(p: Product) {
+    onEdit(p)
+    setTimeout(() => {
+      productRefs.current[p.id]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 50)
   }
 
   async function handleImportExcel(e: React.ChangeEvent<HTMLInputElement>) {
@@ -277,7 +285,8 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
           <div style={{ textAlign: 'center', color: '#8b949e', padding: '60px 0' }}>No products yet. Add your first product!</div>
         )}
         {products.map((p: Product) => (
-          <div key={p.id} style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div key={p.id} ref={el => { productRefs.current[p.id] = el }}
+            style={{ background: editingProduct?.id === p.id && showForm ? '#0d1b2a' : '#161b22', border: `1px solid ${editingProduct?.id === p.id && showForm ? '#378ADD' : '#21262d'}`, borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 16, transition: 'all 0.2s' }}>
             <div style={{ width: 52, height: 52, background: '#0d1117', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
               {p.images?.[0]
                 ? <img src={p.images[0]} alt="" referrerPolicy="no-referrer" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 6 }} />
@@ -290,7 +299,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
               <Toggle label="Active" value={p.active} onChange={() => onToggleActive(p)} />
               <Toggle label="Featured" value={p.featured} onChange={() => onToggleFeatured(p)} />
-              <button onClick={() => onEdit(p)} style={{ background: '#0c2a4a', border: '1px solid #378ADD', color: '#85b7eb', borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: 'pointer' }}>Edit</button>
+              <button onClick={() => handleEdit(p)} style={{ background: '#0c2a4a', border: '1px solid #378ADD', color: '#85b7eb', borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: 'pointer' }}>Edit</button>
               <button className="btn-danger" onClick={() => onDelete(p.id)}>Delete</button>
             </div>
           </div>
@@ -341,6 +350,7 @@ function Toggle({ label, value, onChange }: { label: string; value: boolean; onC
 }
 
 function ProductForm({ product, categories, onClose }: { product: Product | null; categories: Category[]; onClose: () => void }) {
+  const formRef = useRef<HTMLDivElement>(null)
   const [form, setForm] = useState({
     name: product?.name || '',
     description: product?.description || '',
@@ -360,6 +370,12 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+  }, [])
 
   function addImageUrl() {
     const url = imageUrl.trim()
@@ -428,7 +444,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
   const labelStyle = { fontSize: 13, color: '#8b949e', marginBottom: 6, display: 'block' as const }
 
   return (
-    <div style={{ background: '#0d1117', border: '1px solid #378ADD', borderRadius: 12, padding: 24, marginBottom: 24 }}>
+    <div ref={formRef} style={{ background: '#0d1117', border: '1px solid #378ADD', borderRadius: 12, padding: 24, marginBottom: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h3 style={{ color: '#e6edf3', fontSize: 16, fontWeight: 500 }}>{product ? 'Edit Product' : 'New Product'}</h3>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
