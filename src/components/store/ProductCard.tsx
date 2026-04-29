@@ -1,9 +1,15 @@
 'use client'
+import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Product } from '@/lib/types'
 import { useCart } from '@/lib/CartContext'
-import { useState } from 'react'
+
+function getOptimizedUrl(url: string) {
+  if (url && url.includes('res.cloudinary.com')) {
+    return url.replace('/upload/', '/upload/w_400,q_auto,f_auto/')
+  }
+  return url
+}
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem, items } = useCart()
@@ -20,6 +26,8 @@ export default function ProductCard({ product }: { product: Product }) {
     setTimeout(() => setAdded(false), 1200)
   }
 
+  const imgUrl = product.images?.[0] ? getOptimizedUrl(product.images[0]) : null
+
   return (
     <Link href={`/store/product/${product.id}`} style={{ textDecoration: 'none', height: '100%', display: 'block' }}>
       <div style={{
@@ -33,14 +41,13 @@ export default function ProductCard({ product }: { product: Product }) {
         onMouseLeave={e => { if (cartQty === 0) e.currentTarget.style.borderColor = '#21262d' }}
       >
         {/* Image */}
-        <div style={{ background: '#0d1117', height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-          {product.images?.[0] ? (
-            <Image
-              src={product.images[0]}
+        <div style={{ background: '#0d1117', height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+          {imgUrl ? (
+            <img
+              src={imgUrl}
               alt={product.name}
-              fill
-              style={{ objectFit: 'contain', padding: 12 }}
-              sizes="(max-width: 768px) 50vw, 220px"
+              loading="lazy"
+              style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 12 }}
             />
           ) : (
             <span style={{ fontSize: 48, opacity: 0.3 }}>🖥️</span>
