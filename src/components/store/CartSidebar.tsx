@@ -9,7 +9,7 @@ function Watermark() {
     <div style={{
       position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
-      opacity: 0.06, userSelect: 'none', gap: 8,
+      opacity: 0.15, userSelect: 'none', gap: 8,
     }}>
       <img src={LOGO_URL} alt="" style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover' }} />
       <span style={{ color: '#fff', fontSize: 22, fontWeight: 700, letterSpacing: 2 }}>ZAR3 HARDWARE</span>
@@ -65,11 +65,11 @@ export default function CartSidebar() {
       doc.setFillColor(26, 111, 196)
       doc.rect(0, 32, pageW, 1.2, 'F')
       doc.setFillColor(255, 255, 255)
-      doc.circle(margin + 10, 16, 10, 'F')
+      doc.circle(margin + 12, 16, 12, 'F')
 
       try {
         const img = await loadImageAsBase64(LOGO_URL)
-        doc.addImage(img, 'JPEG', margin + 1, 7, 18, 18, undefined, 'FAST')
+        doc.addImage(img, 'JPEG', margin + 1, 5, 24, 24, undefined, 'FAST')
       } catch {}
 
       doc.setFont('helvetica', 'bold')
