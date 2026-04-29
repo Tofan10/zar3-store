@@ -4,6 +4,19 @@ import { useState } from 'react'
 
 const LOGO_URL = 'https://gumjhqrfsvngjppciowu.supabase.co/storage/v1/object/sign/logo/481354976_122205531740136612_8758662314822517452_n.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV84MDU0Y2IzOC04OWQ3LTQzODgtODM4ZC02MmE4MGJmODE3NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJsb2dvLzQ4MTM1NDk3Nl8xMjIyMDU1MzE3NDAxMzY2MTJfODc1ODY2MjMxNDgyMjUxNzQ1Ml9uLmpwZyIsImlhdCI6MTc3NzI1Mjg2NiwiZXhwIjoyMDkyNjEyODY2fQ.DktxglH6FH6lD5_5wMCoOs4yZPtnGAotyvike91iPqY'
 
+function Watermark() {
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
+      opacity: 0.06, userSelect: 'none', gap: 8,
+    }}>
+      <img src={LOGO_URL} alt="" style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover' }} />
+      <span style={{ color: '#fff', fontSize: 22, fontWeight: 700, letterSpacing: 2 }}>ZAR3 HARDWARE</span>
+    </div>
+  )
+}
+
 export default function CartSidebar() {
   const { items, removeItem, updateQty, clearCart, total, count } = useCart()
   const [open, setOpen] = useState(false)
@@ -43,72 +56,47 @@ export default function CartSidebar() {
       const autoTable = autoTableModule.default
 
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pageW = doc.internal.pageSize.getWidth()  // 210mm
-      const pageH = doc.internal.pageSize.getHeight() // 297mm
+      const pageW = doc.internal.pageSize.getWidth()
+      const pageH = doc.internal.pageSize.getHeight()
       const margin = 14
 
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // HEADER BAND
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // Dark band
       doc.setFillColor(15, 20, 30)
       doc.rect(0, 0, pageW, 32, 'F')
-
-      // Accent blue line at bottom of header
       doc.setFillColor(26, 111, 196)
       doc.rect(0, 32, pageW, 1.2, 'F')
-
-      // Logo circle background
       doc.setFillColor(255, 255, 255)
       doc.circle(margin + 10, 16, 10, 'F')
 
-      // Logo image
       try {
         const img = await loadImageAsBase64(LOGO_URL)
         doc.addImage(img, 'JPEG', margin + 1, 7, 18, 18, undefined, 'FAST')
-      } catch {
-        // fallback: just the white circle
-      }
+      } catch {}
 
-      // Company name
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(16)
       doc.setTextColor(240, 245, 255)
       doc.text('ZAR3 HARDWARE', margin + 24, 14)
-
-      // Subtitle
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(7.5)
       doc.setTextColor(55, 138, 221)
       doc.text('HARDWARE PRICE QUOTATION', margin + 24, 21)
 
-      // Date — right side
       const now = new Date()
-      const dateStr = now.toLocaleDateString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      })
+      const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(7.5)
       doc.setTextColor(160, 170, 185)
       doc.text(dateStr, pageW - margin, 14, { align: 'right' })
 
-      // Quote ref number
       const ref = `REF-${Date.now().toString().slice(-6)}`
       doc.setFontSize(7)
       doc.setTextColor(80, 100, 130)
       doc.text(`Quotation #${ref}`, pageW - margin, 21, { align: 'right' })
 
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // TABLE
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       const tableRows = items.map(({ product, quantity }, idx) => [
-        String(idx + 1),
-        product.name,
-        (product.category as any)?.name || '—',
+        String(idx + 1), product.name, (product.category as any)?.name || '—',
         product.warranty ? `${product.warranty}d` : '—',
-        String(quantity),
-        `${product.price.toLocaleString()}`,
+        String(quantity), `${product.price.toLocaleString()}`,
         `${(product.price * quantity).toLocaleString()}`,
       ])
 
@@ -117,32 +105,12 @@ export default function CartSidebar() {
         head: [['#', 'ITEM DESCRIPTION', 'CATEGORY', 'WARRANTY', 'QTY', 'UNIT PRICE', 'TOTAL (EGP)']],
         body: tableRows,
         theme: 'plain',
-        styles: {
-          fontSize: 8.5,
-          cellPadding: { top: 5, bottom: 5, left: 4, right: 4 },
-          textColor: [30, 35, 45],
-          lineColor: [220, 225, 235],
-          lineWidth: 0.25,
-          font: 'helvetica',
-          overflow: 'linebreak',
-          minCellHeight: 10,
-        },
-        headStyles: {
-          fillColor: [26, 111, 196],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          fontSize: 7.5,
-          cellPadding: { top: 5, bottom: 5, left: 4, right: 4 },
-          halign: 'left',
-        },
-        alternateRowStyles: {
-          fillColor: [245, 248, 252],
-        },
-        bodyStyles: {
-          fillColor: [255, 255, 255],
-        },
+        styles: { fontSize: 8.5, cellPadding: { top: 5, bottom: 5, left: 4, right: 4 }, textColor: [30, 35, 45], lineColor: [220, 225, 235], lineWidth: 0.25, font: 'helvetica', overflow: 'linebreak', minCellHeight: 10 },
+        headStyles: { fillColor: [26, 111, 196], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.5, cellPadding: { top: 5, bottom: 5, left: 4, right: 4 }, halign: 'left' },
+        alternateRowStyles: { fillColor: [245, 248, 252] },
+        bodyStyles: { fillColor: [255, 255, 255] },
         columnStyles: {
-          0: { cellWidth: 8,  halign: 'center', textColor: [120, 130, 150], fontSize: 7.5 },
+          0: { cellWidth: 8, halign: 'center', textColor: [120, 130, 150], fontSize: 7.5 },
           1: { cellWidth: 'auto' },
           2: { cellWidth: 28, textColor: [80, 95, 120], fontSize: 8 },
           3: { cellWidth: 20, halign: 'center', textColor: [80, 95, 120], fontSize: 8 },
@@ -151,7 +119,6 @@ export default function CartSidebar() {
           6: { cellWidth: 28, halign: 'right', fontStyle: 'bold', textColor: [15, 90, 170] },
         },
         margin: { left: margin, right: margin },
-        // Draw a left accent line on each row
         didDrawCell: (data) => {
           if (data.section === 'body' && data.column.index === 0) {
             doc.setFillColor(26, 111, 196)
@@ -160,69 +127,45 @@ export default function CartSidebar() {
         },
       })
 
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // TOTALS SECTION
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       const tableEnd = (doc as any).lastAutoTable.finalY
       const totalsY = tableEnd + 6
 
-      // Items count summary (left)
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8)
       doc.setTextColor(120, 130, 150)
       doc.text(`${count} item${count !== 1 ? 's' : ''} in this quotation`, margin, totalsY + 8)
 
-      // Total box (right)
       const boxW = 72
       const boxX = pageW - margin - boxW
       const boxH = 22
 
-      // Shadow effect (slightly offset dark rect)
       doc.setFillColor(200, 210, 225)
       doc.roundedRect(boxX + 1, totalsY + 1, boxW, boxH, 3, 3, 'F')
-
-      // Main box with blue gradient simulation
       doc.setFillColor(26, 111, 196)
       doc.roundedRect(boxX, totalsY, boxW, boxH, 3, 3, 'F')
-
-      // "TOTAL" label
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(7)
       doc.setTextColor(180, 210, 255)
       doc.text('TOTAL AMOUNT', boxX + boxW / 2, totalsY + 7, { align: 'center' })
-
-      // Total value
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(14)
       doc.setTextColor(255, 255, 255)
       doc.text(`${total.toLocaleString()} EGP`, boxX + boxW / 2, totalsY + 17, { align: 'center' })
 
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // FOOTER
-      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // Footer band
       doc.setFillColor(15, 20, 30)
       doc.rect(0, pageH - 18, pageW, 18, 'F')
-
-      // Accent line top of footer
       doc.setFillColor(26, 111, 196)
       doc.rect(0, pageH - 18, pageW, 1, 'F')
-
-      // Footer text
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(7.5)
       doc.setTextColor(120, 140, 170)
       doc.text('ZAR3 Hardware', margin, pageH - 9)
-
       doc.setTextColor(55, 138, 221)
       doc.text('wa.me/201124424414', pageW / 2, pageH - 9, { align: 'center' })
-
       doc.setTextColor(120, 140, 170)
       doc.text('fb.com/ZAR3Hardware', pageW - margin, pageH - 9, { align: 'right' })
 
-      // ── Save ──
       doc.save(`ZAR3-Quote-${ref}.pdf`)
-
     } catch (err) {
       console.error('PDF generation failed:', err)
       alert('حصل خطأ أثناء إنشاء الـ PDF، جرب تاني.')
@@ -288,9 +231,7 @@ export default function CartSidebar() {
             {ordered ? (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
                 <div style={{ fontSize: 64, marginBottom: 20 }}>🎉</div>
-                <h2 style={{ color: '#e6edf3', fontSize: 22, fontWeight: 600, marginBottom: 12 }}>
-                  Thank you for your order!
-                </h2>
+                <h2 style={{ color: '#e6edf3', fontSize: 22, fontWeight: 600, marginBottom: 12 }}>Thank you for your order!</h2>
                 <p style={{ color: '#8b949e', fontSize: 15, lineHeight: 1.7, marginBottom: 8 }}>
                   Your order has been sent via{' '}
                   <span style={{ color: ordered === 'whatsapp' ? '#25d366' : '#1877f2', fontWeight: 500 }}>
@@ -300,48 +241,35 @@ export default function CartSidebar() {
                 <p style={{ color: '#8b949e', fontSize: 14, lineHeight: 1.7, marginBottom: 28 }}>
                   Our team at <span style={{ color: '#378ADD' }}>ZAR3 Hardware</span> will get back to you shortly to confirm your order and arrange delivery. 🚀
                 </p>
-                <div style={{
-                  background: '#161b22', border: '1px solid #21262d',
-                  borderRadius: 12, padding: '16px 20px', width: '100%', marginBottom: 24
-                }}>
+                <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 12, padding: '16px 20px', width: '100%', marginBottom: 24 }}>
                   <div style={{ fontSize: 12, color: '#8b949e', marginBottom: 4 }}>Contact us directly</div>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 8 }}>
-                    <a href="https://wa.me/201124424414" target="_blank" rel="noopener" style={{
-                      background: '#128c7e', color: '#fff', borderRadius: 8,
-                      padding: '8px 16px', fontSize: 13, textDecoration: 'none', fontWeight: 500
-                    }}>WhatsApp</a>
-                    <a href="https://www.facebook.com/profile.php?id=61554098374352" target="_blank" rel="noopener" style={{
-                      background: '#1877f2', color: '#fff', borderRadius: 8,
-                      padding: '8px 16px', fontSize: 13, textDecoration: 'none', fontWeight: 500
-                    }}>Facebook</a>
+                    <a href="https://wa.me/201124424414" target="_blank" rel="noopener" style={{ background: '#128c7e', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>WhatsApp</a>
+                    <a href="https://www.facebook.com/profile.php?id=61554098374352" target="_blank" rel="noopener" style={{ background: '#1877f2', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>Facebook</a>
                   </div>
                 </div>
-                <button onClick={handleClose} style={{
-                  background: '#1a6fc4', border: 'none', borderRadius: 8,
-                  color: '#fff', padding: '10px 28px', fontSize: 14, cursor: 'pointer', fontWeight: 500
-                }}>Continue Shopping</button>
+                <button onClick={handleClose} style={{ background: '#1a6fc4', border: 'none', borderRadius: 8, color: '#fff', padding: '10px 28px', fontSize: 14, cursor: 'pointer', fontWeight: 500 }}>Continue Shopping</button>
               </div>
             ) : (
               <>
-                <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', position: 'relative' }}>
+                  {/* WATERMARK */}
+                  <Watermark />
+
                   {items.length === 0 ? (
-                    <div style={{ textAlign: 'center', color: '#8b949e', paddingTop: 80 }}>
+                    <div style={{ textAlign: 'center', color: '#8b949e', paddingTop: 80, position: 'relative', zIndex: 1 }}>
                       <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>🛒</div>
                       <div style={{ fontSize: 15 }}>Your cart is empty</div>
                       <div style={{ fontSize: 13, marginTop: 6 }}>Add products to start your order</div>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, position: 'relative', zIndex: 1 }}>
                       {items.map(({ product, quantity }) => (
                         <div key={product.id} style={{
                           background: '#161b22', border: '1px solid #21262d',
                           borderRadius: 10, padding: 14, display: 'flex', gap: 12
                         }}>
-                          <div style={{
-                            width: 56, height: 56, background: '#0d1117', borderRadius: 8,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                            overflow: 'hidden'
-                          }}>
+                          <div style={{ width: 56, height: 56, background: '#0d1117', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                             {product.images?.[0]
                               ? <img src={product.images[0]} alt="" style={{ width: 52, height: 52, objectFit: 'contain', borderRadius: 6 }} referrerPolicy="no-referrer" />
                               : <span style={{ fontSize: 24, opacity: 0.4 }}>🖥️</span>}
@@ -356,10 +284,7 @@ export default function CartSidebar() {
                               <button onClick={() => updateQty(product.id, quantity - 1)} style={qtyBtn}>−</button>
                               <span style={{ color: '#e6edf3', fontSize: 14, minWidth: 20, textAlign: 'center' }}>{quantity}</span>
                               <button onClick={() => updateQty(product.id, quantity + 1)} disabled={quantity >= product.stock} style={qtyBtn}>+</button>
-                              <button onClick={() => removeItem(product.id)} style={{
-                                marginLeft: 'auto', background: 'none', border: 'none',
-                                color: '#f85149', cursor: 'pointer', fontSize: 12
-                              }}>Remove</button>
+                              <button onClick={() => removeItem(product.id)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#f85149', cursor: 'pointer', fontSize: 12 }}>Remove</button>
                             </div>
                           </div>
                         </div>
@@ -382,49 +307,20 @@ export default function CartSidebar() {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      <button onClick={orderWhatsApp} style={{
-                        background: '#128c7e', border: 'none', borderRadius: 10,
-                        color: '#fff', padding: '13px', fontSize: 15, fontWeight: 500,
-                        cursor: 'pointer', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', gap: 8, transition: 'background 0.15s'
-                      }}
+                      <button onClick={orderWhatsApp} style={{ background: '#128c7e', border: 'none', borderRadius: 10, color: '#fff', padding: '13px', fontSize: 15, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.15s' }}
                         onMouseEnter={e => e.currentTarget.style.background = '#25d366'}
                         onMouseLeave={e => e.currentTarget.style.background = '#128c7e'}
-                      >
-                        <WhatsAppIcon /> Order via WhatsApp
-                      </button>
-                      <button onClick={orderFacebook} style={{
-                        background: '#1877f2', border: 'none', borderRadius: 10,
-                        color: '#fff', padding: '13px', fontSize: 15, fontWeight: 500,
-                        cursor: 'pointer', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', gap: 8, transition: 'background 0.15s'
-                      }}
+                      ><WhatsAppIcon /> Order via WhatsApp</button>
+                      <button onClick={orderFacebook} style={{ background: '#1877f2', border: 'none', borderRadius: 10, color: '#fff', padding: '13px', fontSize: 15, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.15s' }}
                         onMouseEnter={e => e.currentTarget.style.background = '#0d65d9'}
                         onMouseLeave={e => e.currentTarget.style.background = '#1877f2'}
-                      >
-                        <FacebookIcon /> Order via Facebook
-                      </button>
-                      <button
-                        onClick={downloadQuote}
-                        disabled={downloading}
-                        style={{
-                          background: downloading ? '#0c2a4a' : 'none',
-                          border: '1px solid #378ADD', borderRadius: 10,
-                          color: '#378ADD', padding: '11px', fontSize: 14, fontWeight: 500,
-                          cursor: downloading ? 'not-allowed' : 'pointer',
-                          display: 'flex', alignItems: 'center',
-                          justifyContent: 'center', gap: 8, transition: 'all 0.15s',
-                          opacity: downloading ? 0.7 : 1
-                        }}
+                      ><FacebookIcon /> Order via Facebook</button>
+                      <button onClick={downloadQuote} disabled={downloading} style={{ background: downloading ? '#0c2a4a' : 'none', border: '1px solid #378ADD', borderRadius: 10, color: '#378ADD', padding: '11px', fontSize: 14, fontWeight: 500, cursor: downloading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.15s', opacity: downloading ? 0.7 : 1 }}
                         onMouseEnter={e => { if (!downloading) e.currentTarget.style.background = '#0c2a4a' }}
                         onMouseLeave={e => { if (!downloading) e.currentTarget.style.background = 'none' }}
-                      >
-                        {downloading ? '⏳ Generating PDF...' : '📄 Download Price Quote'}
-                      </button>
+                      >{downloading ? '⏳ Generating PDF...' : '📄 Download Price Quote'}</button>
                     </div>
-                    <p style={{ color: '#6e7681', fontSize: 11, textAlign: 'center', marginTop: 10 }}>
-                      Your order details will be sent automatically
-                    </p>
+                    <p style={{ color: '#6e7681', fontSize: 11, textAlign: 'center', marginTop: 10 }}>Your order details will be sent automatically</p>
                   </div>
                 )}
               </>
@@ -436,7 +332,6 @@ export default function CartSidebar() {
   )
 }
 
-// ── Helper: load image URL → base64 (needed for jsPDF) ──
 function loadImageAsBase64(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -457,8 +352,7 @@ function loadImageAsBase64(url: string): Promise<string> {
 const qtyBtn: React.CSSProperties = {
   width: 28, height: 28, borderRadius: 6, background: '#21262d',
   border: '1px solid #30363d', color: '#e6edf3', cursor: 'pointer',
-  fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
-  lineHeight: 1
+  fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1
 }
 
 function CartIcon() {
