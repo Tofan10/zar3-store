@@ -5,7 +5,7 @@ import { read, utils } from 'xlsx'
 import { Product, Category } from '@/lib/types'
 
 type Tab = 'stats' | 'products' | 'categories'
-  
+
 export default function AdminDashboard() {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('stats')
@@ -167,9 +167,14 @@ export default function AdminDashboard() {
 
 function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleActive, onToggleFeatured, showForm, editingProduct, onFormClose }: any) {
   const [importing, setImporting] = useState(false)
-  const [importResult, setImportResult] = useState<{ inserted?: number; updated?: number; deleted?: number; skipped?: any[]; error?: string } | null>(null)
+  const [importResult, setImportResult] = useState<{ inserted?: number; skipped?: any[]; error?: string } | null>(null)
+  const [search, setSearch] = useState('')
   const importRef = useRef<HTMLInputElement>(null)
-  const productRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  const filtered = products.filter((p: any) =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    (p.category?.name || '').toLowerCase().includes(search.toLowerCase())
+  )
 
   const slugMap: Record<string, string> = {
     'Processors (CPU)': 'processors-cpu',
@@ -189,13 +194,6 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
     'PC Builds': 'pc-builds',
   }
 
-  function handleEdit(p: Product) {
-    onEdit(p)
-    setTimeout(() => {
-      productRefs.current[p.id]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }, 50)
-  }
-
   async function handleImportExcel(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -211,6 +209,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
     categories.forEach((c: any) => { nameToSlug[c.name] = c.slug })
 
     const rows = raw.map(r => {
+      // normalize keys to lowercase
       const row: Record<string, any> = {}
       for (const k in r) row[k.toLowerCase().trim()] = r[k]
 
@@ -222,8 +221,6 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
         price: row['sale price'] ?? row['price'] ?? '',
         stock: row['stock'] ?? '',
         category_slug,
-        warranty: row['warranty'] ? parseInt(row['warranty']) : null,
-        description: (row['notes'] || '').toString().trim(),
       }
     }).filter(r => r.name)
 
@@ -272,21 +269,38 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
           <span style={{ color: importResult.error ? '#f85149' : '#3fb950', fontSize: 13 }}>
             {importResult.error
               ? `❌ Error: ${importResult.error}`
-              : `✅ Updated ${importResult.updated ?? 0}, Added ${importResult.inserted ?? 0}, Deleted ${importResult.deleted ?? 0}${importResult.skipped?.length ? ` (${importResult.skipped.length} skipped)` : ''}`
+              : `✅ Imported ${importResult.inserted} products successfully${importResult.skipped?.length ? ` (${importResult.skipped.length} skipped)` : ''}`
             }
           </span>
           <button onClick={() => setImportResult(null)} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 16 }}>×</button>
         </div>
       )}
 
+      <input
+        type="text"
+        placeholder="🔍 Search products..."
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        style={{
+          width: '100%', background: '#161b22', border: '1px solid #21262d',
+          borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e6edf3',
+          outline: 'none', boxSizing: 'border-box', marginBottom: 16
+        }}
+        onFocus={e => e.target.style.borderColor = '#378ADD'}
+        onBlur={e => e.target.style.borderColor = '#21262d'}
+      />
+      {search && (
+        <div style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>
+          {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"
+        </div>
+      )}
       {showForm && <ProductForm categories={categories} product={editingProduct} onClose={onFormClose} />}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {products.length === 0 && !showForm && (
           <div style={{ textAlign: 'center', color: '#8b949e', padding: '60px 0' }}>No products yet. Add your first product!</div>
         )}
-        {products.map((p: Product) => (
-          <div key={p.id} ref={el => { productRefs.current[p.id] = el }}
-            style={{ background: editingProduct?.id === p.id && showForm ? '#0d1b2a' : '#161b22', border: `1px solid ${editingProduct?.id === p.id && showForm ? '#378ADD' : '#21262d'}`, borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 16, transition: 'all 0.2s' }}>
+        {filtered.map((p: Product) => (
+          <div key={p.id} style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ width: 52, height: 52, background: '#0d1117', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
               {p.images?.[0]
                 ? <img src={p.images[0]} alt="" referrerPolicy="no-referrer" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 6 }} />
@@ -299,7 +313,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
               <Toggle label="Active" value={p.active} onChange={() => onToggleActive(p)} />
               <Toggle label="Featured" value={p.featured} onChange={() => onToggleFeatured(p)} />
-              <button onClick={() => handleEdit(p)} style={{ background: '#0c2a4a', border: '1px solid #378ADD', color: '#85b7eb', borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: 'pointer' }}>Edit</button>
+              <button onClick={() => onEdit(p)} style={{ background: '#0c2a4a', border: '1px solid #378ADD', color: '#85b7eb', borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: 'pointer' }}>Edit</button>
               <button className="btn-danger" onClick={() => onDelete(p.id)}>Delete</button>
             </div>
           </div>
@@ -350,7 +364,6 @@ function Toggle({ label, value, onChange }: { label: string; value: boolean; onC
 }
 
 function ProductForm({ product, categories, onClose }: { product: Product | null; categories: Category[]; onClose: () => void }) {
-  const formRef = useRef<HTMLDivElement>(null)
   const [form, setForm] = useState({
     name: product?.name || '',
     description: product?.description || '',
@@ -370,12 +383,6 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 50)
-  }, [])
 
   function addImageUrl() {
     const url = imageUrl.trim()
@@ -444,7 +451,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
   const labelStyle = { fontSize: 13, color: '#8b949e', marginBottom: 6, display: 'block' as const }
 
   return (
-    <div ref={formRef} style={{ background: '#0d1117', border: '1px solid #378ADD', borderRadius: 12, padding: 24, marginBottom: 24 }}>
+    <div style={{ background: '#0d1117', border: '1px solid #378ADD', borderRadius: 12, padding: 24, marginBottom: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h3 style={{ color: '#e6edf3', fontSize: 16, fontWeight: 500 }}>{product ? 'Edit Product' : 'New Product'}</h3>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
