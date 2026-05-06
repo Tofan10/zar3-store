@@ -22,8 +22,14 @@ export async function POST(req: NextRequest) {
   const existingMap: Record<string, any> = {}
   for (const p of existing ?? []) existingMap[`${p.name}||${p.category_id}`] = p
 
+  // ✅ احفظ الصور بالاسم بس (مش بالكاتيجوري) عشان لو اتنقل كاتيجوري نرجعله صوره
+  const imagesByName: Record<string, string[]> = {}
+  for (const p of existing ?? []) {
+    if (p.images?.length > 0) imagesByName[p.name.trim()] = p.images
+  }
+
   const mergedMap: Record<string, any> = {}
-  const skipped = []
+  const skipped: any[] = []
 
   for (const row of rows) {
     const name = row.name?.toString().trim()
@@ -33,7 +39,6 @@ export async function POST(req: NextRequest) {
     const category_id = slugToId[slug]
     const warranty = row.warranty ? parseInt(row.warranty) : null
     const description = (row.description || '').toString().trim()
-    // ✅ preserve specs (SKU etc) from Excel
     const specs = row.specs && Object.keys(row.specs).length > 0 ? row.specs : {}
 
     if (!name || isNaN(price) || isNaN(stock)) {
@@ -48,7 +53,6 @@ export async function POST(req: NextRequest) {
     const key = `${name}||${category_id}`
     if (mergedMap[key]) {
       mergedMap[key].stock += stock
-      // merge specs if multiple rows
       if (specs && Object.keys(specs).length > 0)
         mergedMap[key].specs = { ...mergedMap[key].specs, ...specs }
     } else {
@@ -65,17 +69,21 @@ export async function POST(req: NextRequest) {
 
   for (const [key, row] of Object.entries(mergedMap) as any) {
     const existing_product = existingMap[key]
+
     if (existing_product) {
       await supabaseAdmin.from('products').update({
         price: row.price,
         stock: row.stock,
         warranty: row.warranty ?? existing_product.warranty,
         description: row.description || existing_product.description,
-        // ✅ merge specs: keep existing (images etc) + add new SKU
         specs: { ...existing_product.specs, ...row.specs },
+        // ✅ الصور ما بتتغيرش أبداً عند الـ update
+        images: existing_product.images ?? [],
       }).eq('id', existing_product.id)
       updated++
     } else {
+      // ✅ منتج جديد — شوف لو عنده صور من قبل بنفس الاسم
+      const savedImages = imagesByName[row.name] ?? []
       await supabaseAdmin.from('products').insert({
         name: row.name,
         price: row.price,
@@ -83,8 +91,8 @@ export async function POST(req: NextRequest) {
         category_id: row.category_id,
         warranty: row.warranty,
         description: row.description,
-        specs: row.specs,  // ✅ includes SKU
-        images: [],
+        specs: row.specs,
+        images: savedImages,  // ✅ رجّع الصور القديمة لو موجودة
         featured: false,
         active: true,
       })
@@ -92,7 +100,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Delete products not in Excel
+  // ✅ Delete: لكن احفظ الصور في imagesByName قبل الحذف (موجودة فوق)
   for (const [key, existing_product] of Object.entries(existingMap) as any) {
     if (!mergedMap[key]) {
       await supabaseAdmin.from('products').delete().eq('id', existing_product.id)
