@@ -9,18 +9,19 @@ export async function POST(req: NextRequest) {
   if (!Array.isArray(rows) || rows.length === 0)
     return NextResponse.json({ error: 'No rows provided' }, { status: 400 })
 
-  // Fetch categories
   const { data: categories, error: catError } = await supabaseAdmin.from('categories').select('id, slug')
   if (catError) return NextResponse.json({ error: catError.message }, { status: 500 })
+
   const slugToId: Record<string, string> = {}
   for (const c of categories ?? []) slugToId[c.slug] = c.id
 
-  // Fetch existing products
-  const { data: existing } = await supabaseAdmin.from('products').select('id, name, category_id, images, specs, featured, active, warranty, description')
+  const { data: existing } = await supabaseAdmin
+    .from('products')
+    .select('id, name, category_id, images, specs, featured, active, warranty, description')
+
   const existingMap: Record<string, any> = {}
   for (const p of existing ?? []) existingMap[`${p.name}||${p.category_id}`] = p
 
-  // Merge duplicate rows
   const mergedMap: Record<string, any> = {}
   const skipped = []
 
@@ -32,6 +33,8 @@ export async function POST(req: NextRequest) {
     const category_id = slugToId[slug]
     const warranty = row.warranty ? parseInt(row.warranty) : null
     const description = (row.description || '').toString().trim()
+    // ✅ preserve specs (SKU etc) from Excel
+    const specs = row.specs && Object.keys(row.specs).length > 0 ? row.specs : {}
 
     if (!name || isNaN(price) || isNaN(stock)) {
       skipped.push({ row, reason: 'missing name/price/stock' })
@@ -45,8 +48,11 @@ export async function POST(req: NextRequest) {
     const key = `${name}||${category_id}`
     if (mergedMap[key]) {
       mergedMap[key].stock += stock
+      // merge specs if multiple rows
+      if (specs && Object.keys(specs).length > 0)
+        mergedMap[key].specs = { ...mergedMap[key].specs, ...specs }
     } else {
-      mergedMap[key] = { name, price, stock, category_id, warranty, description }
+      mergedMap[key] = { name, price, stock, category_id, warranty, description, specs }
     }
   }
 
@@ -57,23 +63,28 @@ export async function POST(req: NextRequest) {
   let updated = 0
   let deleted = 0
 
-  // Update or insert
   for (const [key, row] of Object.entries(mergedMap) as any) {
     const existing_product = existingMap[key]
-
     if (existing_product) {
       await supabaseAdmin.from('products').update({
         price: row.price,
         stock: row.stock,
         warranty: row.warranty ?? existing_product.warranty,
-        ...(row.description ? { description: row.description } : {}),
+        description: row.description || existing_product.description,
+        // ✅ merge specs: keep existing (images etc) + add new SKU
+        specs: { ...existing_product.specs, ...row.specs },
       }).eq('id', existing_product.id)
       updated++
     } else {
       await supabaseAdmin.from('products').insert({
-        ...row,
+        name: row.name,
+        price: row.price,
+        stock: row.stock,
+        category_id: row.category_id,
+        warranty: row.warranty,
+        description: row.description,
+        specs: row.specs,  // ✅ includes SKU
         images: [],
-        specs: {},
         featured: false,
         active: true,
       })
