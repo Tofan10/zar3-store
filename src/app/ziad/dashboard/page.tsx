@@ -167,7 +167,7 @@ export default function AdminDashboard() {
 
 function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleActive, onToggleFeatured, showForm, editingProduct, onFormClose }: any) {
   const [importing, setImporting] = useState(false)
-  const [importResult, setImportResult] = useState<{ inserted?: number; skipped?: any[]; error?: string } | null>(null)
+  const [importResult, setImportResult] = useState<{ inserted?: number; updated?: number; deleted?: number; skipped?: any[]; error?: string } | null>(null)
   const [search, setSearch] = useState('')
   const importRef = useRef<HTMLInputElement>(null)
 
@@ -219,9 +219,14 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
       const warrantyRaw = (row['warranty'] || '').toString().trim()
       const warrantyNum = warrantyRaw ? parseInt(warrantyRaw) || null : null
 
-      // ✅ Notes → description
-      const notes = (row['notes'] || '').toString().trim()
-      const description = notes === '-' ? '' : notes
+      // ✅ Notes → description (filter out Excel merged cell artifacts)
+      const rawNotes = (row['notes'] || row['note'] || row['Notes'] || row['NOTES'] || '').toString().trim()
+      const description = (
+        rawNotes === '-' ||
+        rawNotes === '' ||
+        rawNotes.toLowerCase().includes('click to view') ||
+        rawNotes.toLowerCase().includes('click here')
+      ) ? '' : rawNotes
 
       // ✅ SKU → specs
       const sku = (row['sku/serial'] || row['sku'] || '').toString().trim()
@@ -284,7 +289,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
           <span style={{ color: importResult.error ? '#f85149' : '#3fb950', fontSize: 13 }}>
             {importResult.error
               ? `❌ Error: ${importResult.error}`
-              : `✅ Imported ${importResult.inserted} products successfully${importResult.skipped?.length ? ` (${importResult.skipped.length} skipped)` : ''}`
+              : `✅ ${importResult.inserted} inserted · ${importResult.updated} updated · ${importResult.deleted} deleted${importResult.skipped?.length ? ` · ${importResult.skipped.length} skipped` : ''}`
             }
           </span>
           <button onClick={() => setImportResult(null)} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 16 }}>×</button>
