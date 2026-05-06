@@ -181,7 +181,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
     'Graphics Cards (GPU)': 'graphics-cards-gpu',
     'Motherboards': 'motherboards',
     'Memory (RAM)': 'memory-ram',
-    'Storage (SSD/HDD)': 'storage-ssd-hdd',
+    'Storage (SSD/HDD)': 'storage',
     'Power Supplies (PSU)': 'power-supplies-psu',
     'Computer Cases': 'computer-cases',
     'Cooling & Fans': 'cooling-fans',
@@ -209,18 +209,33 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
     categories.forEach((c: any) => { nameToSlug[c.name] = c.slug })
 
     const rows = raw.map(r => {
-      // normalize keys to lowercase
       const row: Record<string, any> = {}
       for (const k in r) row[k.toLowerCase().trim()] = r[k]
 
       const rawCat = (row['category'] || row['category_slug'] || '').toString().trim()
       const category_slug = nameToSlug[rawCat] || slugMap[rawCat] || rawCat
 
+      // ✅ Parse warranty: "180 Days" → 180
+      const warrantyRaw = (row['warranty'] || '').toString().trim()
+      const warrantyNum = warrantyRaw ? parseInt(warrantyRaw) || null : null
+
+      // ✅ Notes → description
+      const notes = (row['notes'] || '').toString().trim()
+      const description = notes === '-' ? '' : notes
+
+      // ✅ SKU → specs
+      const sku = (row['sku/serial'] || row['sku'] || '').toString().trim()
+      const specs: Record<string, string> = {}
+      if (sku) specs['SKU'] = sku
+
       return {
         name: (row['name'] || '').toString().trim(),
-        price: row['sale price'] ?? row['price'] ?? '',
-        stock: row['stock'] ?? '',
+        price: row['sale price'] ?? row['price'] ?? 0,
+        stock: row['stock'] ?? 0,
         category_slug,
+        warranty: warrantyNum,
+        description,
+        specs,
       }
     }).filter(r => r.name)
 
@@ -294,7 +309,9 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
           {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"
         </div>
       )}
+
       {showForm && <ProductForm categories={categories} product={editingProduct} onClose={onFormClose} />}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {products.length === 0 && !showForm && (
           <div style={{ textAlign: 'center', color: '#8b949e', padding: '60px 0' }}>No products yet. Add your first product!</div>
@@ -308,7 +325,10 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ color: '#e6edf3', fontWeight: 500, fontSize: 14 }}>{p.name}</div>
-              <div style={{ color: '#8b949e', fontSize: 12, marginTop: 2 }}>{(p.category as any)?.name || 'No category'} · {p.price.toLocaleString()} EGP · Stock: {p.stock}</div>
+              <div style={{ color: '#8b949e', fontSize: 12, marginTop: 2 }}>
+                {(p.category as any)?.name || 'No category'} · {p.price.toLocaleString()} EGP · Stock: {p.stock}
+                {(p as any).warranty ? ` · Warranty: ${(p as any).warranty} days` : ''}
+              </div>
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
               <Toggle label="Active" value={p.active} onChange={() => onToggleActive(p)} />
@@ -374,7 +394,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
     specs: product?.specs ? Object.entries(product.specs).map(([k, v]) => `${k}: ${v}`).join('\n') : '',
     featured: product?.featured || false,
     active: product?.active ?? true,
-    warranty: product?.warranty ?? null,
+    warranty: (product as any)?.warranty ?? '',
   })
   const [imageUrl, setImageUrl] = useState('')
   const [urlError, setUrlError] = useState('')
@@ -437,8 +457,16 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
     setSaving(true)
     setError('')
     const specs: Record<string, string> = {}
-    form.specs.split('\n').forEach((line: string) => { if (line.trim()) specs[line.trim()] = '' })
-    const body = { ...form, specs, price: Number(form.price), stock: Number(form.stock) }
+    form.specs.split('\n').forEach((line: string) => {
+      if (line.trim()) specs[line.trim()] = ''
+    })
+    const body = {
+      ...form,
+      specs,
+      price: Number(form.price),
+      stock: Number(form.stock),
+      warranty: form.warranty !== '' ? Number(form.warranty) : null,
+    }
     const url = product ? `/api/products/${product.id}` : '/api/products'
     const method = product ? 'PUT' : 'POST'
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -482,8 +510,8 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
             <label style={labelStyle}>Warranty (days)</label>
             <input
               type="number"
-              value={form.warranty ?? ''}
-              onChange={e => setForm(f => ({ ...f, warranty: e.target.value ? Number(e.target.value) : null }))}
+              value={form.warranty}
+              onChange={e => setForm(f => ({ ...f, warranty: e.target.value }))}
               min={0}
               placeholder="e.g. 365"
             />
@@ -507,7 +535,6 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
             Images
             {pasting && <span style={{ color: '#378ADD', fontSize: 11, marginLeft: 8, fontWeight: 400 }}>Uploading pasted image...</span>}
           </label>
-
           <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
             <input
               value={imageUrl}
@@ -549,7 +576,6 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
             </button>
             <input ref={fileRef} type="file" accept="image/*" onChange={uploadImage} style={{ display: 'none' }} />
           </div>
-
           <div style={{ color: '#6e7681', fontSize: 11, marginTop: 8 }}>
             3 ways to add images: Ctrl+V to paste screenshot · paste URL above · or upload file
           </div>
