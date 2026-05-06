@@ -215,11 +215,9 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
       const rawCat = (row['category'] || row['category_slug'] || '').toString().trim()
       const category_slug = nameToSlug[rawCat] || slugMap[rawCat] || rawCat
 
-      // ✅ Parse warranty: "180 Days" → 180
       const warrantyRaw = (row['warranty'] || '').toString().trim()
       const warrantyNum = warrantyRaw ? parseInt(warrantyRaw) || null : null
 
-      // ✅ Notes → description (filter out Excel merged cell artifacts)
       const rawNotes = (row['notes'] || row['note'] || row['Notes'] || row['NOTES'] || '').toString().trim()
       const description = (
         rawNotes === '-' ||
@@ -228,7 +226,6 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
         rawNotes.toLowerCase().includes('click here')
       ) ? '' : rawNotes
 
-      // ✅ SKU → specs
       const sku = (row['sku/serial'] || row['sku'] || '').toString().trim()
       const specs: Record<string, string> = {}
       if (sku) specs['SKU'] = sku
@@ -315,32 +312,37 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
         </div>
       )}
 
-      {showForm && <ProductForm categories={categories} product={editingProduct} onClose={onFormClose} />}
+      {showForm && !editingProduct && <ProductForm categories={categories} product={null} onClose={onFormClose} />}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {products.length === 0 && !showForm && (
           <div style={{ textAlign: 'center', color: '#8b949e', padding: '60px 0' }}>No products yet. Add your first product!</div>
         )}
         {filtered.map((p: Product) => (
-          <div key={p.id} style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ width: 52, height: 52, background: '#0d1117', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-              {p.images?.[0]
-                ? <img src={p.images[0]} alt="" referrerPolicy="no-referrer" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 6 }} />
-                : <span style={{ fontSize: 24, opacity: 0.4 }}>🖥️</span>}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ color: '#e6edf3', fontWeight: 500, fontSize: 14 }}>{p.name}</div>
-              <div style={{ color: '#8b949e', fontSize: 12, marginTop: 2 }}>
-                {(p.category as any)?.name || 'No category'} · {p.price.toLocaleString()} EGP · Stock: {p.stock}
-                {(p as any).warranty ? ` · Warranty: ${(p as any).warranty} days` : ''}
+          <div key={p.id}>
+            <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ width: 52, height: 52, background: '#0d1117', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                {p.images?.[0]
+                  ? <img src={p.images[0]} alt="" referrerPolicy="no-referrer" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 6 }} />
+                  : <span style={{ fontSize: 24, opacity: 0.4 }}>🖥️</span>}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ color: '#e6edf3', fontWeight: 500, fontSize: 14 }}>{p.name}</div>
+                <div style={{ color: '#8b949e', fontSize: 12, marginTop: 2 }}>
+                  {(p.category as any)?.name || 'No category'} · {p.price.toLocaleString()} EGP · Stock: {p.stock}
+                  {(p as any).warranty ? ` · Warranty: ${(p as any).warranty} days` : ''}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+                <Toggle label="Active" value={p.active} onChange={() => onToggleActive(p)} />
+                <Toggle label="Featured" value={p.featured} onChange={() => onToggleFeatured(p)} />
+                <button onClick={() => onEdit(p)} style={{ background: '#0c2a4a', border: '1px solid #378ADD', color: '#85b7eb', borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: 'pointer' }}>Edit</button>
+                <button className="btn-danger" onClick={() => onDelete(p.id)}>Delete</button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-              <Toggle label="Active" value={p.active} onChange={() => onToggleActive(p)} />
-              <Toggle label="Featured" value={p.featured} onChange={() => onToggleFeatured(p)} />
-              <button onClick={() => onEdit(p)} style={{ background: '#0c2a4a', border: '1px solid #378ADD', color: '#85b7eb', borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: 'pointer' }}>Edit</button>
-              <button className="btn-danger" onClick={() => onDelete(p.id)}>Delete</button>
-            </div>
+            {showForm && editingProduct?.id === p.id && (
+              <ProductForm categories={categories} product={editingProduct} onClose={onFormClose} />
+            )}
           </div>
         ))}
       </div>
@@ -484,7 +486,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
   const labelStyle = { fontSize: 13, color: '#8b949e', marginBottom: 6, display: 'block' as const }
 
   return (
-    <div style={{ background: '#0d1117', border: '1px solid #378ADD', borderRadius: 12, padding: 24, marginBottom: 24 }}>
+    <div style={{ background: '#0d1117', border: '1px solid #378ADD', borderRadius: 12, padding: 24, marginBottom: 8, marginTop: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h3 style={{ color: '#e6edf3', fontSize: 16, fontWeight: 500 }}>{product ? 'Edit Product' : 'New Product'}</h3>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
@@ -513,13 +515,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
           </div>
           <div>
             <label style={labelStyle}>Warranty (days)</label>
-            <input
-              type="number"
-              value={form.warranty}
-              onChange={e => setForm(f => ({ ...f, warranty: e.target.value }))}
-              min={0}
-              placeholder="e.g. 365"
-            />
+            <input type="number" value={form.warranty} onChange={e => setForm(f => ({ ...f, warranty: e.target.value }))} min={0} placeholder="e.g. 365" />
           </div>
         </div>
 
