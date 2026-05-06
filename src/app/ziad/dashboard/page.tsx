@@ -48,20 +48,12 @@ export default function AdminDashboard() {
   }
 
   async function toggleActive(p: Product) {
-    await fetch(`/api/products/${p.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ active: !p.active }),
-    })
+    await fetch(`/api/products/${p.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: !p.active }) })
     fetchAll()
   }
 
   async function toggleFeatured(p: Product) {
-    await fetch(`/api/products/${p.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ featured: !p.featured }),
-    })
+    await fetch(`/api/products/${p.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ featured: !p.featured }) })
     fetchAll()
   }
 
@@ -78,10 +70,7 @@ export default function AdminDashboard() {
   const outOfStock = products.filter(p => p.stock === 0).length
   const featured = products.filter(p => p.featured).length
   const totalValue = products.reduce((sum, p) => sum + p.price * p.stock, 0)
-  const catCounts = categories.map(c => ({
-    ...c,
-    count: products.filter(p => p.category_id === c.id).length
-  })).sort((a, b) => b.count - a.count)
+  const catCounts = categories.map(c => ({ ...c, count: products.filter(p => p.category_id === c.id).length })).sort((a, b) => b.count - a.count)
 
   return (
     <div style={{ minHeight: '100vh', background: '#0d1117' }}>
@@ -171,8 +160,17 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
   const [search, setSearch] = useState('')
   const importRef = useRef<HTMLInputElement>(null)
 
-  const filtered = [...products].sort((a: any, b: any) => ((a.active ? 2 : 0) + (a.images?.length > 0 ? 1 : 0)) - ((b.active ? 2 : 0) + (b.images?.length > 0 ? 1 : 0))).filter((p: any) =>
-    
+  const sorted = [...products].sort((a: any, b: any) => {
+    const aScore = (a.active ? 2 : 0) + (a.images?.length > 0 ? 1 : 0)
+    const bScore = (b.active ? 2 : 0) + (b.images?.length > 0 ? 1 : 0)
+    return aScore - bScore
+  })
+
+  const filtered = sorted.filter((p: any) =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    (p.category?.name || '').toLowerCase().includes(search.toLowerCase())
+  )
+
   const slugMap: Record<string, string> = {
     'Processors (CPU)': 'processors-cpu',
     'Graphics Cards (GPU)': 'graphics-cards-gpu',
@@ -216,12 +214,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
       const warrantyNum = warrantyRaw ? parseInt(warrantyRaw) || null : null
 
       const rawNotes = (row['notes'] || row['note'] || row['Notes'] || row['NOTES'] || '').toString().trim()
-      const description = (
-        rawNotes === '-' ||
-        rawNotes === '' ||
-        rawNotes.toLowerCase().includes('click to view') ||
-        rawNotes.toLowerCase().includes('click here')
-      ) ? '' : rawNotes
+      const description = (rawNotes === '-' || rawNotes === '' || rawNotes.toLowerCase().includes('click to view') || rawNotes.toLowerCase().includes('click here')) ? '' : rawNotes
 
       const sku = (row['sku/serial'] || row['sku'] || '').toString().trim()
       const specs: Record<string, string> = {}
@@ -238,11 +231,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
       }
     }).filter(r => r.name)
 
-    const res = await fetch('/api/products/import', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rows }),
-    })
+    const res = await fetch('/api/products/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rows }) })
     const data = await res.json()
     setImporting(false)
     setImportResult(data)
@@ -255,17 +244,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 style={{ color: '#e6edf3', fontSize: 18, fontWeight: 500 }}>Products</h2>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            onClick={() => importRef.current?.click()}
-            disabled={importing}
-            style={{
-              background: importing ? '#161b22' : '#0c2a0c',
-              border: '1px solid #3fb950',
-              color: importing ? '#8b949e' : '#3fb950',
-              borderRadius: 8, padding: '8px 16px', fontSize: 13,
-              cursor: importing ? 'not-allowed' : 'pointer', fontWeight: 500
-            }}
-          >
+          <button onClick={() => importRef.current?.click()} disabled={importing} style={{ background: importing ? '#161b22' : '#0c2a0c', border: '1px solid #3fb950', color: importing ? '#8b949e' : '#3fb950', borderRadius: 8, padding: '8px 16px', fontSize: 13, cursor: importing ? 'not-allowed' : 'pointer', fontWeight: 500 }}>
             {importing ? '⏳ Importing...' : '📥 Import Excel'}
           </button>
           <input ref={importRef} type="file" accept=".xlsx,.xls" onChange={handleImportExcel} style={{ display: 'none' }} />
@@ -274,40 +253,20 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
       </div>
 
       {importResult && (
-        <div style={{
-          background: importResult.error ? '#1a0a0a' : '#0a1a0a',
-          border: `1px solid ${importResult.error ? '#f85149' : '#3fb950'}`,
-          borderRadius: 10, padding: '12px 16px', marginBottom: 16,
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-        }}>
+        <div style={{ background: importResult.error ? '#1a0a0a' : '#0a1a0a', border: `1px solid ${importResult.error ? '#f85149' : '#3fb950'}`, borderRadius: 10, padding: '12px 16px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ color: importResult.error ? '#f85149' : '#3fb950', fontSize: 13 }}>
-            {importResult.error
-              ? `❌ Error: ${importResult.error}`
-              : `✅ ${importResult.inserted} inserted · ${importResult.updated} updated · ${importResult.deleted} deleted${importResult.skipped?.length ? ` · ${importResult.skipped.length} skipped` : ''}`
-            }
+            {importResult.error ? `❌ Error: ${importResult.error}` : `✅ ${importResult.inserted} inserted · ${importResult.updated} updated · ${importResult.deleted} deleted${importResult.skipped?.length ? ` · ${importResult.skipped.length} skipped` : ''}`}
           </span>
           <button onClick={() => setImportResult(null)} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 16 }}>×</button>
         </div>
       )}
 
-      <input
-        type="text"
-        placeholder="🔍 Search products..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        style={{
-          width: '100%', background: '#161b22', border: '1px solid #21262d',
-          borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e6edf3',
-          outline: 'none', boxSizing: 'border-box', marginBottom: 16
-        }}
+      <input type="text" placeholder="🔍 Search products..." value={search} onChange={e => setSearch(e.target.value)}
+        style={{ width: '100%', background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e6edf3', outline: 'none', boxSizing: 'border-box', marginBottom: 16 }}
         onFocus={e => e.target.style.borderColor = '#378ADD'}
         onBlur={e => e.target.style.borderColor = '#21262d'}
       />
-      {search && (
-        <div style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>
-          {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"
-        </div>
-      )}
+      {search && <div style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>{filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"</div>}
 
       {showForm && !editingProduct && <ProductForm categories={categories} product={null} onClose={onFormClose} />}
 
@@ -319,9 +278,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
           <div key={p.id}>
             <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ width: 52, height: 52, background: '#0d1117', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                {p.images?.[0]
-                  ? <img src={p.images[0]} alt="" referrerPolicy="no-referrer" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 6 }} />
-                  : <span style={{ fontSize: 24, opacity: 0.4 }}>🖥️</span>}
+                {p.images?.[0] ? <img src={p.images[0]} alt="" referrerPolicy="no-referrer" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 6 }} /> : <span style={{ fontSize: 24, opacity: 0.4 }}>🖥️</span>}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ color: '#e6edf3', fontWeight: 500, fontSize: 14 }}>{p.name}</div>
@@ -356,9 +313,7 @@ function CategoriesTab({ categories, onAdd, onEdit, onDelete, showForm, editingC
       </div>
       {showForm && <CategoryForm category={editingCat} onClose={onFormClose} />}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
-        {categories.length === 0 && !showForm && (
-          <div style={{ color: '#8b949e', fontSize: 14 }}>No categories yet.</div>
-        )}
+        {categories.length === 0 && !showForm && <div style={{ color: '#8b949e', fontSize: 14 }}>No categories yet.</div>}
         {categories.map((c: Category) => (
           <div key={c.id} style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: 18 }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>{c.icon}</div>
@@ -461,16 +416,8 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
     setSaving(true)
     setError('')
     const specs: Record<string, string> = {}
-    form.specs.split('\n').forEach((line: string) => {
-      if (line.trim()) specs[line.trim()] = ''
-    })
-    const body = {
-      ...form,
-      specs,
-      price: Number(form.price),
-      stock: Number(form.stock),
-      warranty: form.warranty !== '' ? Number(form.warranty) : null,
-    }
+    form.specs.split('\n').forEach((line: string) => { if (line.trim()) specs[line.trim()] = '' })
+    const body = { ...form, specs, price: Number(form.price), stock: Number(form.stock), warranty: form.warranty !== '' ? Number(form.warranty) : null }
     const url = product ? `/api/products/${product.id}` : '/api/products'
     const method = product ? 'PUT' : 'POST'
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -488,7 +435,6 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
         <h3 style={{ color: '#e6edf3', fontSize: 16, fontWeight: 500 }}>{product ? 'Edit Product' : 'New Product'}</h3>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
       </div>
-
       <form onSubmit={handleSave} onPaste={handlePaste}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <div>
@@ -515,75 +461,43 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
             <input type="number" value={form.warranty} onChange={e => setForm(f => ({ ...f, warranty: e.target.value }))} min={0} placeholder="e.g. 365" />
           </div>
         </div>
-
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Description</label>
           <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} placeholder="Short product description..." style={{ resize: 'vertical' }} />
         </div>
-
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Specs</label>
-          <textarea value={form.specs} onChange={e => setForm(f => ({ ...f, specs: e.target.value }))} rows={4}
-            placeholder={"RTX 4070 Ti\n16GB GDDR6X\nPCIe 4.0"}
-            style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }} />
+          <textarea value={form.specs} onChange={e => setForm(f => ({ ...f, specs: e.target.value }))} rows={4} placeholder={"RTX 4070 Ti\n16GB GDDR6X\nPCIe 4.0"} style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }} />
         </div>
-
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>
             Images
             {pasting && <span style={{ color: '#378ADD', fontSize: 11, marginLeft: 8, fontWeight: 400 }}>Uploading pasted image...</span>}
           </label>
           <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-            <input
-              value={imageUrl}
-              onChange={e => { setImageUrl(e.target.value); setUrlError('') }}
-              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addImageUrl())}
-              placeholder="Paste image URL here, or press Ctrl+V anywhere to paste a screenshot"
-              style={{ flex: 1 }}
-            />
-            <button type="button" onClick={addImageUrl} style={{
-              background: '#1a6fc4', border: 'none', borderRadius: 8,
-              color: '#fff', padding: '8px 16px', fontSize: 13,
-              cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 500
-            }}>Add URL</button>
+            <input value={imageUrl} onChange={e => { setImageUrl(e.target.value); setUrlError('') }} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addImageUrl())} placeholder="Paste image URL here, or press Ctrl+V anywhere to paste a screenshot" style={{ flex: 1 }} />
+            <button type="button" onClick={addImageUrl} style={{ background: '#1a6fc4', border: 'none', borderRadius: 8, color: '#fff', padding: '8px 16px', fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 500 }}>Add URL</button>
           </div>
           {urlError && <div style={{ color: '#f85149', fontSize: 12, marginBottom: 8 }}>{urlError}</div>}
-
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
             {form.images.map((url: string) => (
               <div key={url} style={{ position: 'relative', width: 80, height: 80 }}>
-                <img src={url} alt="" referrerPolicy="no-referrer"
-                  style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid #21262d' }}
-                  onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3' }}
-                />
-                <button type="button" onClick={() => removeImage(url)} style={{
-                  position: 'absolute', top: -6, right: -6, width: 20, height: 20,
-                  borderRadius: '50%', background: '#f85149', border: 'none',
-                  color: '#fff', cursor: 'pointer', fontSize: 12,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>×</button>
+                <img src={url} alt="" referrerPolicy="no-referrer" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid #21262d' }} onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3' }} />
+                <button type="button" onClick={() => removeImage(url)} style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#f85149', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
               </div>
             ))}
-            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} style={{
-              width: 80, height: 80, background: '#161b22', border: '1px dashed #30363d',
-              borderRadius: 8, color: '#8b949e', cursor: 'pointer', fontSize: 13,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4
-            }}>
+            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: 80, height: 80, background: '#161b22', border: '1px dashed #30363d', borderRadius: 8, color: '#8b949e', cursor: 'pointer', fontSize: 13, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
               <span style={{ fontSize: 22 }}>{uploading ? '⏳' : '+'}</span>
               <span style={{ fontSize: 10 }}>{uploading ? 'Uploading' : 'Upload'}</span>
             </button>
             <input ref={fileRef} type="file" accept="image/*" onChange={uploadImage} style={{ display: 'none' }} />
           </div>
-          <div style={{ color: '#6e7681', fontSize: 11, marginTop: 8 }}>
-            3 ways to add images: Ctrl+V to paste screenshot · paste URL above · or upload file
-          </div>
+          <div style={{ color: '#6e7681', fontSize: 11, marginTop: 8 }}>3 ways to add images: Ctrl+V to paste screenshot · paste URL above · or upload file</div>
         </div>
-
         <div style={{ display: 'flex', gap: 20, marginBottom: 20 }}>
           <Toggle label="Active (visible in store)" value={form.active} onChange={() => setForm(f => ({ ...f, active: !f.active }))} />
           <Toggle label="Featured (shown at top)" value={form.featured} onChange={() => setForm(f => ({ ...f, featured: !f.featured }))} />
         </div>
-
         {error && <div style={{ color: '#f85149', fontSize: 13, marginBottom: 12 }}>{error}</div>}
         <div style={{ display: 'flex', gap: 10 }}>
           <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving...' : (product ? 'Save Changes' : 'Add Product')}</button>
