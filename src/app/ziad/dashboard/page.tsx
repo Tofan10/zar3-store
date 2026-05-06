@@ -171,11 +171,12 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
   const [search, setSearch] = useState('')
   const importRef = useRef<HTMLInputElement>(null)
 
-  const filtered = [...products].sort((a: any, b: any) => (a.images?.length > 0 ? 1 : 0) - (b.images?.length > 0 ? 1 : 0)).filter((p: any) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    (p.category?.name || '').toLowerCase().includes(search.toLowerCase())
-  )
-
+  const filtered = [...products].sort((a: any, b: any) => {
+    const aScore = (a.active ? 2 : 0) + (a.images?.length > 0 ? 1 : 0)
+    const bScore = (b.active ? 2 : 0) + (b.images?.length > 0 ? 1 : 0)
+    return aScore - bScore
+  }).filter((p: any) =>
+    
   const slugMap: Record<string, string> = {
     'Processors (CPU)': 'processors-cpu',
     'Graphics Cards (GPU)': 'graphics-cards-gpu',
