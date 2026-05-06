@@ -171,7 +171,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
   const [search, setSearch] = useState('')
   const importRef = useRef<HTMLInputElement>(null)
 
-  const filtered = products.filter((p: any) =>
+  const filtered = [...products].sort((a: any, b: any) => (a.images?.length > 0 ? 1 : 0) - (b.images?.length > 0 ? 1 : 0)).filter((p: any) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     (p.category?.name || '').toLowerCase().includes(search.toLowerCase())
   )
