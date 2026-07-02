@@ -23,11 +23,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-      <div style={{ marginBottom: 32 }}>
+      <div className="reveal" style={{ marginBottom: 32 }}>
         <div style={{ fontSize: 40, marginBottom: 8 }}>{category.icon}</div>
-        <h1 style={{ fontSize: 28, fontWeight: 600, color: '#e6edf3', marginBottom: 6 }}>{category.name}</h1>
-        <p style={{ color: '#8b949e', fontSize: 15 }}>{category.description}</p>
-        <div style={{ color: '#378ADD', fontSize: 13, marginTop: 8 }}>{products.length} products available</div>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>{category.name}</h1>
+        <p style={{ color: 'var(--muted)', fontSize: 15 }}>{category.description}</p>
+        <div style={{ color: 'var(--brand)', fontSize: 13, marginTop: 8, fontWeight: 600 }}>{products.length} products available</div>
       </div>
 
       <SearchableProducts products={products} />
