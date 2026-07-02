@@ -3,8 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --brand: #378ADD;
-  --brand-dark: #185FA5;
+  /* Brand — sky blue */
+  --brand: #0ea5e9;
+  --brand-light: #38bdf8;
+  --brand-dark: #0369a1;
+  --brand-50: #f0f9ff;
+  --brand-100: #e0f2fe;
+
+  /* Light surface theme (storefront) */
+  --bg: #f4f9fd;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f2438;
+  --muted: #64809b;
+
+  /* Dark theme (admin panel keeps this) */
   --dark-bg: #0d1117;
   --dark-surface: #161b22;
   --dark-border: #21262d;
@@ -17,6 +30,11 @@ body {
   background: var(--dark-bg);
   color: #e6edf3;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body.store-theme {
+  background: var(--bg);
+  color: var(--text);
 }
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -71,3 +89,92 @@ input::placeholder, textarea::placeholder {
   border: 1px solid #21262d;
   border-radius: 12px;
 }
+
+/* ============ STOREFRONT ANIMATIONS ============ */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes skyGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(14,165,233,0.35); }
+  50%      { box-shadow: 0 0 0 10px rgba(14,165,233,0); }
+}
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes popIn {
+  0%   { transform: scale(0.8); opacity: 0; }
+  70%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes underlineGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.reveal {
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.store-card {
+  transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.store-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 32px -12px rgba(14,165,233,0.28);
+  border-color: var(--brand) !important;
+}
+
+.nav-link-underline {
+  position: relative;
+}
+.nav-link-underline::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -4px;
+  height: 2px;
+  background: var(--brand);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.25s ease;
+}
+.nav-link-underline:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.btn-sky {
+  background: linear-gradient(135deg, var(--brand-light), var(--brand));
+  color: #fff;
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.btn-sky:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -8px rgba(14,165,233,0.55);
+  filter: brightness(1.05);
+}
+.btn-sky:active:not(:disabled) { transform: translateY(0); }
+
+.carousel-track {
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+}
+.carousel-track > * { scroll-snap-align: start; }
+
+.spin-slow { animation: floatY 3s ease-in-out infinite; }
+
+.store-main-offset { padding-right: 0; }
+@media (min-width: 769px) {
+  .store-main-offset { padding-right: 248px; }
+}q
