@@ -177,4 +177,4 @@ input::placeholder, textarea::placeholder {
 .store-main-offset { padding-right: 0; }
 @media (min-width: 769px) {
   .store-main-offset { padding-right: 248px; }
-}q
+}
