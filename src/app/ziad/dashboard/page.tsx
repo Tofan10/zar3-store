@@ -158,6 +158,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<{ inserted?: number; updated?: number; deleted?: number; skipped?: any[]; error?: string } | null>(null)
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const importRef = useRef<HTMLInputElement>(null)
 
   const sorted = [...products].sort((a: any, b: any) => {
@@ -166,10 +167,15 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
     return aScore - bScore
   })
 
-  const filtered = sorted.filter((p: any) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    (p.category?.name || '').toLowerCase().includes(search.toLowerCase())
-  )
+  const activeCount = products.filter((p: any) => p.active).length
+  const inactiveCount = products.filter((p: any) => !p.active).length
+
+  const filtered = sorted
+    .filter((p: any) => statusFilter === 'all' ? true : statusFilter === 'active' ? p.active : !p.active)
+    .filter((p: any) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.category?.name || '').toLowerCase().includes(search.toLowerCase())
+    )
 
   const slugMap: Record<string, string> = {
     'Processors (CPU)': 'processors-cpu',
@@ -262,10 +268,29 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
       )}
 
       <input type="text" placeholder="🔍 Search products..." value={search} onChange={e => setSearch(e.target.value)}
-        style={{ width: '100%', background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e6edf3', outline: 'none', boxSizing: 'border-box', marginBottom: 16 }}
+        style={{ width: '100%', background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e6edf3', outline: 'none', boxSizing: 'border-box', marginBottom: 12 }}
         onFocus={e => e.target.style.borderColor = '#378ADD'}
         onBlur={e => e.target.style.borderColor = '#21262d'}
       />
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {([
+          { key: 'all', label: `All (${products.length})` },
+          { key: 'active', label: `Active (${activeCount})` },
+          { key: 'inactive', label: `Inactive (${inactiveCount})` },
+        ] as const).map(f => (
+          <button key={f.key} onClick={() => setStatusFilter(f.key)}
+            style={{
+              background: statusFilter === f.key ? (f.key === 'inactive' ? '#3a0d0d' : '#0c2a4a') : 'transparent',
+              border: `1px solid ${statusFilter === f.key ? (f.key === 'inactive' ? '#f85149' : '#378ADD') : '#21262d'}`,
+              color: statusFilter === f.key ? (f.key === 'inactive' ? '#ff8080' : '#85b7eb') : '#8b949e',
+              borderRadius: 8, padding: '7px 16px', fontSize: 13, cursor: 'pointer', fontWeight: 500, transition: 'all 0.15s'
+            }}>
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {search && <div style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>{filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"</div>}
 
       {showForm && !editingProduct && <ProductForm categories={categories} product={null} onClose={onFormClose} />}
@@ -273,6 +298,11 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {products.length === 0 && !showForm && (
           <div style={{ textAlign: 'center', color: '#8b949e', padding: '60px 0' }}>No products yet. Add your first product!</div>
+        )}
+        {products.length > 0 && filtered.length === 0 && (
+          <div style={{ textAlign: 'center', color: '#8b949e', padding: '60px 0' }}>
+            {statusFilter === 'inactive' ? 'No inactive products 🎉' : statusFilter === 'active' ? 'No active products' : 'No products match your search'}
+          </div>
         )}
         {filtered.map((p: Product) => (
           <div key={p.id}>
