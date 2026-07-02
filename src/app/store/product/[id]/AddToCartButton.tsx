@@ -16,13 +16,12 @@ export default function AddToCartButton({ product }: { product: Product }) {
   }
 
   return (
-    <button onClick={handleAdd} disabled={!inStock} style={{
+    <button onClick={handleAdd} disabled={!inStock} className={inStock ? 'btn-sky' : ''} style={{
       width: '100%', border: 'none', borderRadius: 10,
-      padding: '14px', fontSize: 15, fontWeight: 500,
+      padding: '14px', fontSize: 15, fontWeight: 600,
       cursor: inStock ? 'pointer' : 'not-allowed',
-      background: added ? '#1a4d1a' : inStock ? '#1a6fc4' : '#1a2233',
-      color: added ? '#3fb950' : inStock ? '#fff' : '#4a5568',
-      transition: 'all 0.2s'
+      background: added ? '#dcfce7' : inStock ? undefined : '#f1f5f9',
+      color: added ? '#16a34a' : inStock ? '#fff' : '#94a3b8',
     }}>
       {added ? '✓ Added to Cart' : inStock ? '+ Add to Cart' : 'Out of Stock'}
     </button>
