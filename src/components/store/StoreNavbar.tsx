@@ -31,14 +31,14 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
           from { opacity: 0; transform: translateY(-8px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .desktop-cat-sidebar { position: fixed; top: 108px; right: 0; width: 248px; height: calc(100vh - 108px); background: #ffffff; border-left: 1px solid var(--border); padding: 16px 14px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; z-index: 90; scrollbar-width: none; }
+        .desktop-cat-sidebar { position: fixed; top: 108px; right: 0; width: 248px; height: calc(100vh - 108px); background: var(--surface); border-left: 1px solid var(--border); padding: 16px 14px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; z-index: 90; scrollbar-width: none; }
         .desktop-cat-sidebar::-webkit-scrollbar { display: none; }
         .sidebar-group-card { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--brand-50); transition: transform 0.25s ease, box-shadow 0.25s ease; }
         .sidebar-group-card:hover { transform: translateY(-3px); box-shadow: 0 10px 22px -10px rgba(14,165,233,0.35); }
-        .sidebar-group-banner { background: linear-gradient(135deg, #e0f2fe, #bae6fd); padding: 18px 12px; text-align: center; }
+        .sidebar-group-banner { background: linear-gradient(135deg, #0d1b2a, #0c2a4a); padding: 18px 12px; text-align: center; }
         .sidebar-cat-link { color: var(--muted); font-size: 12.5px; text-decoration: none; padding: 6px 10px; border-radius: 6px; border: 1px solid transparent; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
         .sidebar-cat-link:hover { color: var(--brand-dark); background: var(--brand-50); }
-        .sidebar-cat-link.active { color: var(--brand-dark) !important; border-color: #bae6fd !important; background: var(--brand-100) !important; font-weight: 600; }
+        .sidebar-cat-link.active { color: var(--brand-dark) !important; border-color: #1a3a5c !important; background: var(--brand-100) !important; font-weight: 600; }
         .see-all-link { color: var(--brand); font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 8px 10px 4px; display: block; transition: color 0.15s; }
         .see-all-link:hover { color: var(--brand-dark); text-decoration: underline; }
         @media (max-width: 768px) { .desktop-cat-sidebar { display: none !important; } }
@@ -59,8 +59,8 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
             </button>
             {deptOpen && (
               <div style={{
-                position: 'absolute', top: '110%', left: 0, background: '#fff', borderRadius: 12,
-                border: '1px solid var(--border)', boxShadow: '0 20px 40px -12px rgba(2,60,90,0.35)',
+                position: 'absolute', top: '110%', left: 0, background: 'var(--surface)', borderRadius: 12,
+                border: '1px solid var(--border)', boxShadow: '0 20px 40px -12px rgba(0,0,0,0.35)',
                 padding: 14, width: 560, zIndex: 200, display: 'flex', gap: 20, animation: 'dropIn 0.18s ease',
               }}>
                 {groups.map(g => (
@@ -88,13 +88,13 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
             <a className="top-link" href="https://wa.me/201124424414" target="_blank" rel="noopener">💬 WhatsApp Us</a>
             <a className="top-link" href="https://www.facebook.com/profile.php?id=61554098374352" target="_blank" rel="noopener">📘 Facebook</a>
-            <span className="top-link" style={{ cursor: 'default' }}>📞 01096663742</span>
+            <span className="top-link" style={{ cursor: 'default' }}>📞 01124424414</span>
           </div>
         </div>
       </div>
 
       {/* MAIN NAVBAR */}
-      <nav style={{ background: '#ffffff', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 2px 12px -6px rgba(2,60,90,0.12)' }}>
+      <nav style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 2px 12px -6px rgba(0,0,0,0.4)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
           {/* Logo */}
@@ -136,18 +136,18 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
         {/* Mobile dropdown */}
         {menuOpen && (
           <div style={{
-            background: '#ffffff', borderTop: '1px solid var(--border)',
+            background: 'var(--surface)', borderTop: '1px solid var(--border)',
             padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8,
             maxHeight: '70vh', overflowY: 'auto'
           }}>
             <Link href="/store" onClick={() => setMenuOpen(false)}
-              style={{ color: isAllActive ? 'var(--brand-dark)' : 'var(--muted)', fontSize: 14, textDecoration: 'none', padding: '10px 12px', borderRadius: 6, border: `1px solid ${isAllActive ? '#bae6fd' : 'var(--border)'}`, background: isAllActive ? 'var(--brand-100)' : 'transparent' }}>
+              style={{ color: isAllActive ? 'var(--brand-dark)' : 'var(--muted)', fontSize: 14, textDecoration: 'none', padding: '10px 12px', borderRadius: 6, border: `1px solid ${isAllActive ? '#1a3a5c' : 'var(--border)'}`, background: isAllActive ? 'var(--brand-100)' : 'transparent' }}>
               🗂️ All
             </Link>
             {categories.map((cat: any) => (
               <Link key={cat.id} href={`/store/category/${cat.slug}`}
                 onClick={() => setMenuOpen(false)}
-                style={{ color: isActive(cat.slug) ? 'var(--brand-dark)' : 'var(--muted)', fontSize: 14, textDecoration: 'none', padding: '10px 12px', borderRadius: 6, border: `1px solid ${isActive(cat.slug) ? '#bae6fd' : 'var(--border)'}`, background: isActive(cat.slug) ? 'var(--brand-100)' : 'transparent' }}>
+                style={{ color: isActive(cat.slug) ? 'var(--brand-dark)' : 'var(--muted)', fontSize: 14, textDecoration: 'none', padding: '10px 12px', borderRadius: 6, border: `1px solid ${isActive(cat.slug) ? '#1a3a5c' : 'var(--border)'}`, background: isActive(cat.slug) ? 'var(--brand-100)' : 'transparent' }}>
                 {cat.icon} {cat.name}
               </Link>
             ))}
