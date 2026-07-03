@@ -34,7 +34,7 @@ export default function SearchableProducts({ products }: { products: Product[] }
     <div>
       {/* Sticky search + sort bar */}
       <div style={{
-        position: 'sticky', top: 65, zIndex: 90,
+        position: 'sticky', top: 96, zIndex: 90,
         background: 'var(--bg)', paddingBottom: 16, paddingTop: 8,
       }}>
         {/* Search */}

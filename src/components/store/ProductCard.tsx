@@ -13,7 +13,7 @@ function getOptimizedUrl(url: string) {
   return url
 }
 
-export default function ProductCard({ product, isNew }: { product: Product; isNew?: boolean }) {
+export default function ProductCard({ product }: { product: Product }) {
   const { addItem, items } = useCart()
   const { open: openQuickView } = useQuickView()
   const [added, setAdded] = useState(false)
@@ -83,18 +83,6 @@ export default function ProductCard({ product, isNew }: { product: Product; isNe
               fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, zIndex: 2,
             }}>
               -{discount.percent}%
-            </div>
-          )}
-
-          {/* NEW ribbon */}
-          {isNew && (
-            <div style={{
-              position: 'absolute', top: discount ? 34 : 10, left: -32, width: 120, textAlign: 'center',
-              background: 'linear-gradient(135deg, #38bdf8, #0ea5e9)', color: '#fff',
-              fontSize: 10, fontWeight: 700, letterSpacing: 1, padding: '3px 0',
-              transform: 'rotate(-40deg)', boxShadow: '0 2px 6px rgba(14,165,233,0.5)', zIndex: 2,
-            }}>
-              NEW
             </div>
           )}
 

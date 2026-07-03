@@ -53,7 +53,7 @@ export default function ProductCarousel({ title, icon, products, anchorId }: { t
       >
         {products.map((p, i) => (
           <div key={p.id} className="reveal" style={{ animationDelay: `${i * 0.05}s`, flex: '0 0 216px', width: 216 }}>
-            <ProductCard product={p} isNew={i < 2} />
+            <ProductCard product={p} />
           </div>
         ))}
       </div>

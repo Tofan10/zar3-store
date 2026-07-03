@@ -9,9 +9,9 @@ export function groupCategories(categories: any[]) {
   const known = new Set([...HARDWARE_SLUGS, ...ACCESSORY_SLUGS, ...MONITOR_SLUGS])
   const more = categories.filter(c => !known.has(c.slug))
   return [
-    { key: 'hardware', title: 'Hardware', icon: '🖥️', anchor: 'new-in-hardware', items: hardware },
-    { key: 'accessories', title: 'Accessories', icon: '🎧', anchor: 'new-in-accessories', items: accessories },
-    { key: 'monitors', title: 'Monitors', icon: '🖥️', anchor: 'new-in-monitors', items: monitors },
-    { key: 'more', title: 'More', icon: '📦', anchor: 'new-in-more', items: more },
+    { key: 'hardware', title: 'Hardware', icon: '🖥️', anchor: 'cat-hardware', items: hardware },
+    { key: 'accessories', title: 'Accessories', icon: '🎧', anchor: 'cat-accessories', items: accessories },
+    { key: 'monitors', title: 'Monitors', icon: '🖥️', anchor: 'cat-monitors', items: monitors },
+    { key: 'more', title: 'More', icon: '📦', anchor: 'cat-more', items: more },
   ].filter(g => g.items.length > 0)
 }
