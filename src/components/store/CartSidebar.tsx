@@ -12,7 +12,7 @@ function Watermark() {
       opacity: 0.15, userSelect: 'none', gap: 8,
     }}>
       <img src={LOGO_URL} alt="" style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover' }} />
-      <span style={{ color: '#0ea5e9', fontSize: 22, fontWeight: 700, letterSpacing: 2 }}>ZAR3 HARDWARE</span>
+      <span style={{ color: '#378ADD', fontSize: 22, fontWeight: 700, letterSpacing: 2 }}>ZAR3 HARDWARE</span>
     </div>
   )
 }
@@ -179,20 +179,20 @@ export default function CartSidebar() {
       <button
         onClick={() => setOpen(true)}
         style={{
-          position: 'relative', background: '#ffffff',
-          border: '1px solid #e2e8f0', borderRadius: 8,
-          color: '#0f2438', padding: '7px 14px', cursor: 'pointer',
+          position: 'relative', background: '#161b22',
+          border: '1px solid #21262d', borderRadius: 8,
+          color: '#e6edf3', padding: '7px 14px', cursor: 'pointer',
           fontSize: 14, display: 'flex', alignItems: 'center', gap: 8,
           transition: 'border-color 0.15s'
         }}
-        onMouseEnter={e => e.currentTarget.style.borderColor = '#0ea5e9'}
-        onMouseLeave={e => e.currentTarget.style.borderColor = '#e2e8f0'}
+        onMouseEnter={e => e.currentTarget.style.borderColor = '#378ADD'}
+        onMouseLeave={e => e.currentTarget.style.borderColor = '#21262d'}
       >
         <CartIcon />
         Cart
         {count > 0 && (
           <span style={{
-            background: '#0ea5e9', color: '#fff', borderRadius: '50%',
+            background: '#378ADD', color: '#fff', borderRadius: '50%',
             width: 18, height: 18, fontSize: 11, fontWeight: 600,
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>{count}</span>
@@ -204,25 +204,25 @@ export default function CartSidebar() {
           <div onClick={handleClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }} />
           <div style={{
             position: 'relative', width: 400, maxWidth: '95vw',
-            background: '#f0f9ff', borderLeft: '1px solid #e2e8f0',
+            background: '#0d1117', borderLeft: '1px solid #21262d',
             height: '100vh', display: 'flex', flexDirection: 'column', zIndex: 1
           }}>
             <div style={{
-              padding: '20px 24px', borderBottom: '1px solid #e2e8f0',
+              padding: '20px 24px', borderBottom: '1px solid #21262d',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between'
             }}>
-              <span style={{ color: '#0f2438', fontWeight: 500, fontSize: 16 }}>
-                Cart {count > 0 && !ordered && <span style={{ color: '#64809b', fontSize: 13, fontWeight: 400 }}>({count} items)</span>}
+              <span style={{ color: '#e6edf3', fontWeight: 500, fontSize: 16 }}>
+                Cart {count > 0 && !ordered && <span style={{ color: '#8b949e', fontSize: 13, fontWeight: 400 }}>({count} items)</span>}
               </span>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 {items.length > 0 && !ordered && (
                   <button onClick={clearCart} style={{
-                    background: 'none', border: 'none', color: '#dc2626',
+                    background: 'none', border: 'none', color: '#f85149',
                     fontSize: 12, cursor: 'pointer', textDecoration: 'underline'
                   }}>Clear all</button>
                 )}
                 <button onClick={handleClose} style={{
-                  background: 'none', border: 'none', color: '#64809b',
+                  background: 'none', border: 'none', color: '#8b949e',
                   fontSize: 22, cursor: 'pointer', lineHeight: 1, padding: 0
                 }}>×</button>
               </div>
@@ -231,24 +231,24 @@ export default function CartSidebar() {
             {ordered ? (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
                 <div style={{ fontSize: 64, marginBottom: 20 }}>🎉</div>
-                <h2 style={{ color: '#0f2438', fontSize: 22, fontWeight: 600, marginBottom: 12 }}>Thank you for your order!</h2>
-                <p style={{ color: '#64809b', fontSize: 15, lineHeight: 1.7, marginBottom: 8 }}>
+                <h2 style={{ color: '#e6edf3', fontSize: 22, fontWeight: 600, marginBottom: 12 }}>Thank you for your order!</h2>
+                <p style={{ color: '#8b949e', fontSize: 15, lineHeight: 1.7, marginBottom: 8 }}>
                   Your order has been sent via{' '}
                   <span style={{ color: ordered === 'whatsapp' ? '#25d366' : '#1877f2', fontWeight: 500 }}>
                     {ordered === 'whatsapp' ? 'WhatsApp' : 'Facebook'}
                   </span>.
                 </p>
-                <p style={{ color: '#64809b', fontSize: 14, lineHeight: 1.7, marginBottom: 28 }}>
-                  Our team at <span style={{ color: '#0ea5e9' }}>ZAR3 Hardware</span> will get back to you shortly to confirm your order and arrange delivery. 🚀
+                <p style={{ color: '#8b949e', fontSize: 14, lineHeight: 1.7, marginBottom: 28 }}>
+                  Our team at <span style={{ color: '#378ADD' }}>ZAR3 Hardware</span> will get back to you shortly to confirm your order and arrange delivery. 🚀
                 </p>
-                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 20px', width: '100%', marginBottom: 24 }}>
-                  <div style={{ fontSize: 12, color: '#64809b', marginBottom: 4 }}>Contact us directly</div>
+                <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 12, padding: '16px 20px', width: '100%', marginBottom: 24 }}>
+                  <div style={{ fontSize: 12, color: '#8b949e', marginBottom: 4 }}>Contact us directly</div>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 8 }}>
                     <a href="https://wa.me/201124424414" target="_blank" rel="noopener" style={{ background: '#128c7e', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>WhatsApp</a>
                     <a href="https://www.facebook.com/profile.php?id=61554098374352" target="_blank" rel="noopener" style={{ background: '#1877f2', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>Facebook</a>
                   </div>
                 </div>
-                <button onClick={handleClose} style={{ background: '#0ea5e9', border: 'none', borderRadius: 8, color: '#fff', padding: '10px 28px', fontSize: 14, cursor: 'pointer', fontWeight: 500 }}>Continue Shopping</button>
+                <button onClick={handleClose} style={{ background: '#378ADD', border: 'none', borderRadius: 8, color: '#fff', padding: '10px 28px', fontSize: 14, cursor: 'pointer', fontWeight: 500 }}>Continue Shopping</button>
               </div>
             ) : (
               <>
@@ -257,7 +257,7 @@ export default function CartSidebar() {
                   <Watermark />
 
                   {items.length === 0 ? (
-                    <div style={{ textAlign: 'center', color: '#64809b', paddingTop: 80, position: 'relative', zIndex: 1 }}>
+                    <div style={{ textAlign: 'center', color: '#8b949e', paddingTop: 80, position: 'relative', zIndex: 1 }}>
                       <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>🛒</div>
                       <div style={{ fontSize: 15 }}>Your cart is empty</div>
                       <div style={{ fontSize: 13, marginTop: 6 }}>Add products to start your order</div>
@@ -266,25 +266,25 @@ export default function CartSidebar() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, position: 'relative', zIndex: 1 }}>
                       {items.map(({ product, quantity }) => (
                         <div key={product.id} style={{
-                          background: '#ffffff', border: '1px solid #e2e8f0',
+                          background: '#161b22', border: '1px solid #21262d',
                           borderRadius: 10, padding: 14, display: 'flex', gap: 12
                         }}>
-                          <div style={{ width: 56, height: 56, background: '#f0f9ff', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                          <div style={{ width: 56, height: 56, background: '#0d1117', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                             {product.images?.[0]
                               ? <img src={product.images[0]} alt="" style={{ width: 52, height: 52, objectFit: 'contain', borderRadius: 6 }} referrerPolicy="no-referrer" />
                               : <span style={{ fontSize: 24, opacity: 0.4 }}>🖥️</span>}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ color: '#0f2438', fontSize: 13, fontWeight: 500, marginBottom: 4, lineHeight: 1.3 }}>{product.name}</div>
-                            <div style={{ color: '#16a34a', fontSize: 13, marginBottom: 8 }}>
+                            <div style={{ color: '#e6edf3', fontSize: 13, fontWeight: 500, marginBottom: 4, lineHeight: 1.3 }}>{product.name}</div>
+                            <div style={{ color: '#3fb950', fontSize: 13, marginBottom: 8 }}>
                               {(product.price * quantity).toLocaleString()} EGP
-                              {quantity > 1 && <span style={{ color: '#64809b', fontSize: 11 }}> ({product.price.toLocaleString()} × {quantity})</span>}
+                              {quantity > 1 && <span style={{ color: '#8b949e', fontSize: 11 }}> ({product.price.toLocaleString()} × {quantity})</span>}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <button onClick={() => updateQty(product.id, quantity - 1)} style={qtyBtn}>−</button>
-                              <span style={{ color: '#0f2438', fontSize: 14, minWidth: 20, textAlign: 'center' }}>{quantity}</span>
+                              <span style={{ color: '#e6edf3', fontSize: 14, minWidth: 20, textAlign: 'center' }}>{quantity}</span>
                               <button onClick={() => updateQty(product.id, quantity + 1)} disabled={quantity >= product.stock} style={qtyBtn}>+</button>
-                              <button onClick={() => removeItem(product.id)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 12 }}>Remove</button>
+                              <button onClick={() => removeItem(product.id)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#f85149', cursor: 'pointer', fontSize: 12 }}>Remove</button>
                             </div>
                           </div>
                         </div>
@@ -294,15 +294,15 @@ export default function CartSidebar() {
                 </div>
 
                 {items.length > 0 && (
-                  <div style={{ padding: '20px 24px', borderTop: '1px solid #e2e8f0' }}>
-                    <div style={{ background: '#ffffff', borderRadius: 10, padding: '14px 16px', marginBottom: 16 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64809b', fontSize: 13, marginBottom: 6 }}>
+                  <div style={{ padding: '20px 24px', borderTop: '1px solid #21262d' }}>
+                    <div style={{ background: '#161b22', borderRadius: 10, padding: '14px 16px', marginBottom: 16 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#8b949e', fontSize: 13, marginBottom: 6 }}>
                         <span>Items ({count})</span>
                         <span>{total.toLocaleString()} EGP</span>
                       </div>
-                      <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 10, display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#0f2438', fontWeight: 500 }}>Total</span>
-                        <span style={{ color: '#16a34a', fontSize: 20, fontWeight: 600 }}>{total.toLocaleString()} EGP</span>
+                      <div style={{ borderTop: '1px solid #21262d', paddingTop: 10, display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#e6edf3', fontWeight: 500 }}>Total</span>
+                        <span style={{ color: '#3fb950', fontSize: 20, fontWeight: 600 }}>{total.toLocaleString()} EGP</span>
                       </div>
                     </div>
 
@@ -315,12 +315,12 @@ export default function CartSidebar() {
                         onMouseEnter={e => e.currentTarget.style.background = '#0d65d9'}
                         onMouseLeave={e => e.currentTarget.style.background = '#1877f2'}
                       ><FacebookIcon /> Order via Facebook</button>
-                      <button onClick={downloadQuote} disabled={downloading} style={{ background: downloading ? '#e0f2fe' : 'none', border: '1px solid #0ea5e9', borderRadius: 10, color: '#0ea5e9', padding: '11px', fontSize: 14, fontWeight: 500, cursor: downloading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.15s', opacity: downloading ? 0.7 : 1 }}
+                      <button onClick={downloadQuote} disabled={downloading} style={{ background: downloading ? '#e0f2fe' : 'none', border: '1px solid #378ADD', borderRadius: 10, color: '#378ADD', padding: '11px', fontSize: 14, fontWeight: 500, cursor: downloading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.15s', opacity: downloading ? 0.7 : 1 }}
                         onMouseEnter={e => { if (!downloading) e.currentTarget.style.background = '#e0f2fe' }}
                         onMouseLeave={e => { if (!downloading) e.currentTarget.style.background = 'none' }}
                       >{downloading ? '⏳ Generating PDF...' : '📄 Download Price Quote'}</button>
                     </div>
-                    <p style={{ color: '#94a3b8', fontSize: 11, textAlign: 'center', marginTop: 10 }}>Your order details will be sent automatically</p>
+                    <p style={{ color: '#8b949e', fontSize: 11, textAlign: 'center', marginTop: 10 }}>Your order details will be sent automatically</p>
                   </div>
                 )}
               </>
@@ -350,8 +350,8 @@ function loadImageAsBase64(url: string): Promise<string> {
 }
 
 const qtyBtn: React.CSSProperties = {
-  width: 28, height: 28, borderRadius: 6, background: '#e2e8f0',
-  border: '1px solid #cbd5e1', color: '#0f2438', cursor: 'pointer',
+  width: 28, height: 28, borderRadius: 6, background: '#21262d',
+  border: '1px solid #30363d', color: '#e6edf3', cursor: 'pointer',
   fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1
 }
 
