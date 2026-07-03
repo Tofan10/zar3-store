@@ -15,7 +15,7 @@ export default function CategorySidebar({ categories }: { categories: any[] }) {
   return (
     <aside className="category-sidebar">
       <style>{`
-        .category-sidebar { position: sticky; top: 96px; align-self: start; display: flex; flex-direction: column; gap: 14px; }
+        .category-sidebar { display: flex; flex-direction: column; gap: 14px; }
         .cs-group { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); opacity: 0; animation: fadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards; transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease; }
         .cs-group:hover { border-color: var(--brand); transform: translateX(-4px); box-shadow: 0 10px 26px -12px rgba(14,165,233,0.35); }
         .cs-head { display: flex; align-items: center; gap: 10px; padding: 14px 14px; background: linear-gradient(135deg, #0d1b2a, #0c2a4a); }
