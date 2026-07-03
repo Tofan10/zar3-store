@@ -3,19 +3,19 @@
 @tailwind utilities;
 
 :root {
-  /* Brand — sky blue */
-  --brand: #0ea5e9;
+  /* Brand — sky blue accent on dark surfaces */
+  --brand: #378ADD;
   --brand-light: #38bdf8;
-  --brand-dark: #0369a1;
-  --brand-50: #f0f9ff;
-  --brand-100: #e0f2fe;
+  --brand-dark: #7dd3fc;
+  --brand-50: #0d1b2a;
+  --brand-100: #0c2a4a;
 
-  /* Light surface theme (storefront) */
-  --bg: #f4f9fd;
-  --surface: #ffffff;
-  --border: #e2e8f0;
-  --text: #0f2438;
-  --muted: #64809b;
+  /* Storefront theme — dark */
+  --bg: #0d1117;
+  --surface: #161b22;
+  --border: #21262d;
+  --text: #e6edf3;
+  --muted: #8b949e;
 
   /* Dark theme (admin panel keeps this) */
   --dark-bg: #0d1117;
@@ -178,3 +178,5 @@ input::placeholder, textarea::placeholder {
 @media (min-width: 769px) {
   .store-main-offset { padding-right: 248px; }
 }
+
+
