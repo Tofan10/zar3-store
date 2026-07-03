@@ -31,13 +31,12 @@ export default function ProductCard({ product, isNew }: { product: Product; isNe
   return (
     <Link href={`/store/product/${product.id}`} style={{ textDecoration: 'none', height: '100%', display: 'block' }}>
       <div className="store-card" style={{
-        background: '#ffffff',
+        background: 'var(--surface)',
         border: cartQty > 0 ? '2px solid var(--brand)' : '1px solid var(--border)',
         borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column',
         height: '100%',
         opacity: inStock ? 1 : 0.75,
-        boxShadow: '0 1px 3px rgba(2,60,90,0.06)',
-      }}
+        }}
       >
         {/* Image */}
         <div style={{ background: 'var(--brand-50)', height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -70,10 +69,10 @@ export default function ProductCard({ product, isNew }: { product: Product; isNe
               <span style={{ background: 'var(--brand)', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Featured</span>
             )}
             {!inStock && (
-              <span style={{ background: '#fee2e2', color: '#b91c1c', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Out of Stock</span>
+              <span style={{ background: '#6e2c2c', color: '#ffa8a8', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Out of Stock</span>
             )}
             {product.warranty && (
-              <span style={{ background: '#fef3c7', color: '#92400e', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>🛡️ {product.warranty}d</span>
+              <span style={{ background: '#2d2208', color: '#e3b341', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>🛡️ {product.warranty}d</span>
             )}
             {cartQty > 0 && inStock && (
               <span style={{ background: 'var(--brand-100)', color: 'var(--brand-dark)', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{cartQty} in cart</span>
@@ -99,7 +98,7 @@ export default function ProductCard({ product, isNew }: { product: Product; isNe
               <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--brand-dark)' }}>
                 {product.price.toLocaleString()} EGP
               </div>
-              <div style={{ fontSize: 11, color: inStock ? '#16a34a' : '#dc2626', fontWeight: 500 }}>
+              <div style={{ fontSize: 11, color: inStock ? '#3fb950' : '#f85149', fontWeight: 500 }}>
                 {inStock ? `In Stock (${product.stock})` : 'Out of Stock'}
               </div>
             </div>
@@ -111,8 +110,8 @@ export default function ProductCard({ product, isNew }: { product: Product; isNe
                 width: '100%', border: 'none', borderRadius: 8,
                 padding: '10px 0', fontSize: 13, fontWeight: 600,
                 cursor: inStock ? 'pointer' : 'not-allowed',
-                background: added ? '#dcfce7' : inStock ? undefined : '#f1f5f9',
-                color: added ? '#16a34a' : inStock ? '#fff' : '#94a3b8',
+                background: added ? '#1a4d1a' : inStock ? undefined : '#1a2233',
+                color: added ? '#3fb950' : inStock ? '#fff' : '#4a5568',
               }}
             >
               {added ? '✓ Added to Cart' : inStock ? '+ Add to Cart' : 'Out of Stock'}
