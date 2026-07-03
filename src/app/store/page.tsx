@@ -34,7 +34,7 @@ export default async function StorePage() {
               alt="ZAR3"
               style={{
                 width: 96, height: 96, borderRadius: '50%', objectFit: 'cover',
-                boxShadow: '0 0 0 6px rgba(255,255,255,0.25), 0 10px 30px rgba(2,60,90,0.35)',
+                boxShadow: '0 0 0 6px rgba(255,255,255,0.25), 0 10px 30px rgba(0,0,0,0.35)',
               }}
             />
           </div>
@@ -63,7 +63,7 @@ export default async function StorePage() {
       </div>
 
       {/* TAGLINE STRIP */}
-      <div style={{ background: '#eaf5fc', borderBottom: '1px solid var(--border)', textAlign: 'center', padding: '10px 16px' }}>
+      <div style={{ background: '#080c12', borderBottom: '1px solid var(--border)', textAlign: 'center', padding: '10px 16px' }}>
         <span style={{ color: 'var(--brand-dark)', fontSize: 12.5, fontWeight: 700, letterSpacing: 0.6 }}>
           CHECK LATEST PRODUCTS FROM HARDWARE, ACCESSORIES, AND MONITORS
         </span>
