@@ -34,8 +34,8 @@ export default function SearchableProducts({ products }: { products: Product[] }
     <div>
       {/* Sticky search + sort bar */}
       <div style={{
-        position: 'sticky', top: 57, zIndex: 90,
-        background: '#0d1117', paddingBottom: 16, paddingTop: 8,
+        position: 'sticky', top: 65, zIndex: 90,
+        background: 'var(--bg)', paddingBottom: 16, paddingTop: 8,
       }}>
         {/* Search */}
         <input
@@ -44,17 +44,18 @@ export default function SearchableProducts({ products }: { products: Product[] }
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{
-            width: '100%', background: '#161b22', border: '1px solid #21262d',
-            borderRadius: 10, padding: '12px 16px', fontSize: 15, color: '#e6edf3',
-            outline: 'none', boxSizing: 'border-box', marginBottom: 8
+            width: '100%', background: '#ffffff', border: '1px solid var(--border)',
+            borderRadius: 10, padding: '12px 16px', fontSize: 15, color: 'var(--text)',
+            outline: 'none', boxSizing: 'border-box', marginBottom: 8,
+            boxShadow: '0 1px 3px rgba(2,60,90,0.06)', transition: 'border-color 0.2s, box-shadow 0.2s',
           }}
-          onFocus={e => e.target.style.borderColor = '#378ADD'}
-          onBlur={e => e.target.style.borderColor = '#21262d'}
+          onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(14,165,233,0.15)' }}
+          onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = '0 1px 3px rgba(2,60,90,0.06)' }}
         />
 
         {/* Sort row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ color: '#8b949e', fontSize: 13, flexShrink: 0 }}>Sort:</span>
+          <span style={{ color: 'var(--muted)', fontSize: 13, flexShrink: 0 }}>Sort:</span>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {([
               { value: 'default', label: 'Default' },
@@ -67,11 +68,12 @@ export default function SearchableProducts({ products }: { products: Product[] }
                 key={opt.value}
                 onClick={() => setSort(opt.value)}
                 style={{
-                  background: sort === opt.value ? '#0c2a4a' : '#161b22',
-                  border: `1px solid ${sort === opt.value ? '#378ADD' : '#21262d'}`,
-                  color: sort === opt.value ? '#85b7eb' : '#8b949e',
+                  background: sort === opt.value ? 'var(--brand-100)' : '#ffffff',
+                  border: `1px solid ${sort === opt.value ? 'var(--brand)' : 'var(--border)'}`,
+                  color: sort === opt.value ? 'var(--brand-dark)' : 'var(--muted)',
                   borderRadius: 6, padding: '5px 10px', fontSize: 12,
-                  cursor: 'pointer', whiteSpace: 'nowrap'
+                  cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: sort === opt.value ? 600 : 400,
+                  transition: 'all 0.15s',
                 }}
               >
                 {opt.label}
@@ -81,7 +83,7 @@ export default function SearchableProducts({ products }: { products: Product[] }
         </div>
 
         {search && (
-          <div style={{ color: '#8b949e', fontSize: 13, marginTop: 8 }}>
+          <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 8 }}>
             {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"
           </div>
         )}
@@ -89,23 +91,31 @@ export default function SearchableProducts({ products }: { products: Product[] }
 
       {!search && sort === 'default' && featured.length > 0 && (
         <>
-          <h2 style={{ color: '#e6edf3', fontSize: 20, fontWeight: 500, marginBottom: 20 }}>Featured Products</h2>
+          <h2 style={{ color: 'var(--text)', fontSize: 20, fontWeight: 700, marginBottom: 20 }}>⭐ Featured Products</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginBottom: 48 }}>
-            {featured.map(p => <ProductCard key={p.id} product={p} />)}
+            {featured.map((p, i) => (
+              <div key={p.id} className="reveal" style={{ animationDelay: `${(i % 8) * 0.05}s` }}>
+                <ProductCard product={p} />
+              </div>
+            ))}
           </div>
         </>
       )}
 
-      <h2 style={{ color: '#e6edf3', fontSize: 20, fontWeight: 500, marginBottom: 20 }}>
+      <h2 style={{ color: 'var(--text)', fontSize: 20, fontWeight: 700, marginBottom: 20 }}>
         {search ? 'Search Results' : 'All Products'}
       </h2>
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', color: '#8b949e', padding: '60px 0', fontSize: 15 }}>
+        <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '60px 0', fontSize: 15 }}>
           No products found for "{search}"
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
-          {filtered.map(p => <ProductCard key={p.id} product={p} />)}
+          {filtered.map((p, i) => (
+            <div key={p.id} className="reveal" style={{ animationDelay: `${(i % 12) * 0.04}s` }}>
+              <ProductCard product={p} />
+            </div>
+          ))}
         </div>
       )}
     </div>
