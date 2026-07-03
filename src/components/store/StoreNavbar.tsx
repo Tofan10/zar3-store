@@ -31,17 +31,6 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
           from { opacity: 0; transform: translateY(-8px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .desktop-cat-sidebar { position: fixed; top: 108px; right: 0; width: 248px; height: calc(100vh - 108px); background: var(--surface); border-left: 1px solid var(--border); padding: 16px 14px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; z-index: 90; scrollbar-width: none; }
-        .desktop-cat-sidebar::-webkit-scrollbar { display: none; }
-        .sidebar-group-card { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--brand-50); transition: transform 0.25s ease, box-shadow 0.25s ease; }
-        .sidebar-group-card:hover { transform: translateY(-3px); box-shadow: 0 10px 22px -10px rgba(14,165,233,0.35); }
-        .sidebar-group-banner { background: linear-gradient(135deg, #0d1b2a, #0c2a4a); padding: 18px 12px; text-align: center; }
-        .sidebar-cat-link { color: var(--muted); font-size: 12.5px; text-decoration: none; padding: 6px 10px; border-radius: 6px; border: 1px solid transparent; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
-        .sidebar-cat-link:hover { color: var(--brand-dark); background: var(--brand-50); }
-        .sidebar-cat-link.active { color: var(--brand-dark) !important; border-color: #1a3a5c !important; background: var(--brand-100) !important; font-weight: 600; }
-        .see-all-link { color: var(--brand); font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 8px 10px 4px; display: block; transition: color 0.15s; }
-        .see-all-link:hover { color: var(--brand-dark); text-decoration: underline; }
-        @media (max-width: 768px) { .desktop-cat-sidebar { display: none !important; } }
         @media (min-width: 769px) { .mobile-only { display: none !important; } }
         @media (max-width: 900px) { .desktop-nav-links { display: none !important; } }
         .dept-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: #fff; border-radius: 7px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
@@ -154,32 +143,6 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
           </div>
         )}
       </nav>
-
-      {/* DESKTOP SIDEBAR — grouped category cards */}
-      <aside className="desktop-cat-sidebar">
-        <Link href="/store" className={`sidebar-cat-link${isAllActive ? ' active' : ''}`} style={{ fontWeight: 600, fontSize: 13 }}>
-          🗂️ All Products
-        </Link>
-        {groups.map((g, i) => (
-          <div key={g.key} className="reveal sidebar-group-card" style={{ animationDelay: `${i * 0.08}s` }}>
-            <div className="sidebar-group-banner">
-              <div className="spin-slow" style={{ fontSize: 30, marginBottom: 4 }}>{g.icon}</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--brand-dark)', letterSpacing: 0.5 }}>SHOP {g.title.toUpperCase()}</div>
-            </div>
-            <div style={{ padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {g.items.slice(0, 5).map((cat: any) => (
-                <Link key={cat.id} href={`/store/category/${cat.slug}`}
-                  className={`sidebar-cat-link${isActive(cat.slug) ? ' active' : ''}`}>
-                  {cat.icon} {cat.name}
-                </Link>
-              ))}
-              {g.anchor && (
-                <a href={`/store#${g.anchor}`} className="see-all-link">See all in {g.title} →</a>
-              )}
-            </div>
-          </div>
-        ))}
-      </aside>
     </>
   )
 }

@@ -178,9 +178,4 @@ input::placeholder, textarea::placeholder {
 
 .spin-slow { animation: floatY 3s ease-in-out infinite; }
 
-.store-main-offset { padding-right: 0; }
-@media (min-width: 769px) {
-  .store-main-offset { padding-right: 248px; }
-}
-
 
