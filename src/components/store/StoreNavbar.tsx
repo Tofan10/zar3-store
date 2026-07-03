@@ -3,11 +3,14 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import CartSidebar from './CartSidebar'
+import { groupCategories } from '@/lib/categoryGroups'
 
 const LOGO_URL = 'https://gumjhqrfsvngjppciowu.supabase.co/storage/v1/object/sign/logo/481354976_122205531740136612_8758662314822517452_n.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV84MDU0Y2IzOC04OWQ3LTQzODgtODM4ZC02MmE4MGJmODE3NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJsb2dvLzQ4MTM1NDk3Nl8xMjIyMDU1MzE3NDAxMzY2MTJfODc1ODY2MjMxNDgyMjUxNzQ1Ml9uLmpwZyIsImlhdCI6MTc3NzI1Mjg2NiwiZXhwIjoyMDkyNjEyODY2fQ.DktxglH6FH6lD5_5wMCoOs4yZPtnGAotyvike91iPqY'
 
+
 export default function StoreNavbar({ categories }: { categories: any[] }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [deptOpen, setDeptOpen] = useState(false)
   const pathname = usePathname()
 
   function isActive(slug: string) {
@@ -15,48 +18,115 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
   }
 
   const isAllActive = pathname === '/store'
+  const groups = groupCategories(categories)
 
   return (
     <>
       <style>{`
         @keyframes glow {
-          0%, 100% { box-shadow: 0 0 8px 2px #378ADD88, 0 0 16px 4px #1a6fc444; }
-          50% { box-shadow: 0 0 16px 4px #378ADDcc, 0 0 32px 8px #1a6fc488; }
+          0%, 100% { box-shadow: 0 0 8px 2px #0ea5e988, 0 0 16px 4px #0284c744; }
+          50% { box-shadow: 0 0 16px 4px #38bdf8cc, 0 0 32px 8px #0ea5e988; }
         }
-        .desktop-cat-sidebar { position: fixed; top: 67px; right: 0; width: 190px; height: calc(100vh - 67px); background: #080c12; border-left: 1px solid #21262d; padding: 12px 10px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; z-index: 90; scrollbar-width: none; }
+        @keyframes dropIn {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .desktop-cat-sidebar { position: fixed; top: 108px; right: 0; width: 248px; height: calc(100vh - 108px); background: #ffffff; border-left: 1px solid var(--border); padding: 16px 14px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; z-index: 90; scrollbar-width: none; }
         .desktop-cat-sidebar::-webkit-scrollbar { display: none; }
-        .sidebar-cat-link { color: #8b949e; font-size: 13px; text-decoration: none; padding: 8px 12px; border-radius: 6px; border: 1px solid transparent; display: flex; align-items: center; gap: 8px; transition: all 0.15s; }
-        .sidebar-cat-link:hover { color: #e6edf3; border-color: #21262d; background: #0d1117; }
-        .sidebar-cat-link.active { color: #378ADD !important; border-color: #1a3a5c !important; background: #0d1b2a !important; font-weight: 600; }
+        .sidebar-group-card { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: var(--brand-50); transition: transform 0.25s ease, box-shadow 0.25s ease; }
+        .sidebar-group-card:hover { transform: translateY(-3px); box-shadow: 0 10px 22px -10px rgba(14,165,233,0.35); }
+        .sidebar-group-banner { background: linear-gradient(135deg, #e0f2fe, #bae6fd); padding: 18px 12px; text-align: center; }
+        .sidebar-cat-link { color: var(--muted); font-size: 12.5px; text-decoration: none; padding: 6px 10px; border-radius: 6px; border: 1px solid transparent; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
+        .sidebar-cat-link:hover { color: var(--brand-dark); background: var(--brand-50); }
+        .sidebar-cat-link.active { color: var(--brand-dark) !important; border-color: #bae6fd !important; background: var(--brand-100) !important; font-weight: 600; }
+        .see-all-link { color: var(--brand); font-size: 11.5px; font-weight: 600; text-decoration: none; padding: 8px 10px 4px; display: block; transition: color 0.15s; }
+        .see-all-link:hover { color: var(--brand-dark); text-decoration: underline; }
         @media (max-width: 768px) { .desktop-cat-sidebar { display: none !important; } }
         @media (min-width: 769px) { .mobile-only { display: none !important; } }
+        @media (max-width: 900px) { .desktop-nav-links { display: none !important; } }
+        .dept-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: #fff; border-radius: 7px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+        .dept-btn:hover { background: rgba(255,255,255,0.25); }
+        .top-link { color: #e0f2fe; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .top-link:hover { color: #fff; }
       `}</style>
 
-      {/* TOP NAVBAR */}
-      <nav style={{ background: '#080c12', borderBottom: '1px solid #21262d', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* TOP UTILITY BAR */}
+      <div style={{ background: 'linear-gradient(90deg, #0369a1, #0ea5e9)', padding: '9px 16px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative' }}>
+            <button className="dept-btn" onClick={() => setDeptOpen(!deptOpen)} onBlur={() => setTimeout(() => setDeptOpen(false), 150)}>
+              ☰ ALL DEPARTMENTS
+            </button>
+            {deptOpen && (
+              <div style={{
+                position: 'absolute', top: '110%', left: 0, background: '#fff', borderRadius: 12,
+                border: '1px solid var(--border)', boxShadow: '0 20px 40px -12px rgba(2,60,90,0.35)',
+                padding: 14, width: 560, zIndex: 200, display: 'flex', gap: 20, animation: 'dropIn 0.18s ease',
+              }}>
+                {groups.map(g => (
+                  <div key={g.key} style={{ flex: 1, minWidth: 120 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand-dark)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>{g.icon}</span> {g.title}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {g.items.map((cat: any) => (
+                        <Link key={cat.id} href={`/store/category/${cat.slug}`} onClick={() => setDeptOpen(false)}
+                          style={{ color: 'var(--muted)', fontSize: 12.5, textDecoration: 'none' }}
+                          onMouseEnter={e => e.currentTarget.style.color = 'var(--brand-dark)'}
+                          onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
+                        >
+                          {cat.icon} {cat.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+            <a className="top-link" href="https://wa.me/201124424414" target="_blank" rel="noopener">💬 WhatsApp Us</a>
+            <a className="top-link" href="https://www.facebook.com/profile.php?id=61554098374352" target="_blank" rel="noopener">📘 Facebook</a>
+            <span className="top-link" style={{ cursor: 'default' }}>📞 01096663742</span>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN NAVBAR */}
+      <nav style={{ background: '#ffffff', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 2px 12px -6px rgba(2,60,90,0.12)' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
           {/* Logo */}
           <Link href="/store" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
             <img
               src={LOGO_URL}
               alt="ZAR3"
-              style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', animation: 'glow 2.5s ease-in-out infinite' }}
+              style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', animation: 'glow 2.5s ease-in-out infinite' }}
             />
-            <span style={{ fontSize: 17, fontWeight: 500, color: '#e6edf3' }}>
-              ZAR<span style={{ color: '#378ADD' }}>3</span> Hardware
+            <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--text)' }}>
+              ZAR<span style={{ color: 'var(--brand)' }}>3</span> Hardware
             </span>
           </Link>
+
+          {/* Center quick nav (desktop) */}
+          <div className="desktop-nav-links" style={{ display: 'flex', gap: 26 }}>
+            {groups.map(g => (
+              <a key={g.key} href={g.anchor ? `/store#${g.anchor}` : '/store'} className="nav-link-underline" style={{ color: 'var(--text)', fontSize: 13.5, fontWeight: 500, textDecoration: 'none' }}>
+                {g.icon} {g.title}
+              </a>
+            ))}
+          </div>
 
           {/* Right: Cart + Hamburger */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
             <CartSidebar />
             <button
-              className="mobile-only"
               onClick={() => setMenuOpen(!menuOpen)}
+              className="mobile-only"
               style={{
-                background: 'none', border: '1px solid #21262d', borderRadius: 6,
-                padding: '6px 12px', cursor: 'pointer', color: '#e6edf3', fontSize: 18, lineHeight: 1
+                background: 'none', border: '1px solid var(--border)', borderRadius: 6,
+                padding: '6px 12px', cursor: 'pointer', color: 'var(--text)', fontSize: 18, lineHeight: 1,
               }}>
               {menuOpen ? '✕' : '☰'}
             </button>
@@ -65,19 +135,19 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
 
         {/* Mobile dropdown */}
         {menuOpen && (
-          <div className="mobile-only" style={{
-            background: '#080c12', borderTop: '1px solid #21262d',
+          <div style={{
+            background: '#ffffff', borderTop: '1px solid var(--border)',
             padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8,
             maxHeight: '70vh', overflowY: 'auto'
           }}>
             <Link href="/store" onClick={() => setMenuOpen(false)}
-              style={{ color: isAllActive ? '#378ADD' : '#8b949e', fontSize: 14, textDecoration: 'none', padding: '10px 12px', borderRadius: 6, border: `1px solid ${isAllActive ? '#1a3a5c' : '#21262d'}`, background: isAllActive ? '#0d1b2a' : 'transparent' }}>
+              style={{ color: isAllActive ? 'var(--brand-dark)' : 'var(--muted)', fontSize: 14, textDecoration: 'none', padding: '10px 12px', borderRadius: 6, border: `1px solid ${isAllActive ? '#bae6fd' : 'var(--border)'}`, background: isAllActive ? 'var(--brand-100)' : 'transparent' }}>
               🗂️ All
             </Link>
             {categories.map((cat: any) => (
               <Link key={cat.id} href={`/store/category/${cat.slug}`}
                 onClick={() => setMenuOpen(false)}
-                style={{ color: isActive(cat.slug) ? '#378ADD' : '#8b949e', fontSize: 14, textDecoration: 'none', padding: '10px 12px', borderRadius: 6, border: `1px solid ${isActive(cat.slug) ? '#1a3a5c' : '#21262d'}`, background: isActive(cat.slug) ? '#0d1b2a' : 'transparent' }}>
+                style={{ color: isActive(cat.slug) ? 'var(--brand-dark)' : 'var(--muted)', fontSize: 14, textDecoration: 'none', padding: '10px 12px', borderRadius: 6, border: `1px solid ${isActive(cat.slug) ? '#bae6fd' : 'var(--border)'}`, background: isActive(cat.slug) ? 'var(--brand-100)' : 'transparent' }}>
                 {cat.icon} {cat.name}
               </Link>
             ))}
@@ -85,19 +155,29 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
         )}
       </nav>
 
-      {/* DESKTOP SIDEBAR */}
+      {/* DESKTOP SIDEBAR — grouped category cards */}
       <aside className="desktop-cat-sidebar">
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#3d4b5c', textTransform: 'uppercase', letterSpacing: 1, padding: '4px 12px 8px', borderBottom: '1px solid #161b22', marginBottom: 4 }}>
-          Categories
-        </div>
-        <Link href="/store" className={`sidebar-cat-link${isAllActive ? ' active' : ''}`}>
-          🗂️ All
+        <Link href="/store" className={`sidebar-cat-link${isAllActive ? ' active' : ''}`} style={{ fontWeight: 600, fontSize: 13 }}>
+          🗂️ All Products
         </Link>
-        {categories.map((cat: any) => (
-          <Link key={cat.id} href={`/store/category/${cat.slug}`}
-            className={`sidebar-cat-link${isActive(cat.slug) ? ' active' : ''}`}>
-            {cat.icon} {cat.name}
-          </Link>
+        {groups.map((g, i) => (
+          <div key={g.key} className="reveal sidebar-group-card" style={{ animationDelay: `${i * 0.08}s` }}>
+            <div className="sidebar-group-banner">
+              <div className="spin-slow" style={{ fontSize: 30, marginBottom: 4 }}>{g.icon}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--brand-dark)', letterSpacing: 0.5 }}>SHOP {g.title.toUpperCase()}</div>
+            </div>
+            <div style={{ padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {g.items.slice(0, 5).map((cat: any) => (
+                <Link key={cat.id} href={`/store/category/${cat.slug}`}
+                  className={`sidebar-cat-link${isActive(cat.slug) ? ' active' : ''}`}>
+                  {cat.icon} {cat.name}
+                </Link>
+              ))}
+              {g.anchor && (
+                <a href={`/store#${g.anchor}`} className="see-all-link">See all in {g.title} →</a>
+              )}
+            </div>
+          </div>
         ))}
       </aside>
     </>
