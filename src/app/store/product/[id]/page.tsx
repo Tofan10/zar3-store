@@ -38,7 +38,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, marginBottom: 48 }} className="product-grid">
-        <div style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 1px 3px rgba(2,60,90,0.06)' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden' }}>
           {product.images?.[0] ? (
             <div style={{ position: 'relative', height: 380, background: 'var(--brand-50)' }}>
               <Image
@@ -71,20 +71,20 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             {product.description && <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.7 }}>{product.description}</p>}
           </div>
 
-          <div style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(2,60,90,0.06)' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
             <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--brand-dark)', marginBottom: 4 }}>{product.price.toLocaleString()} EGP</div>
-            <div style={{ fontSize: 13, color: inStock ? '#16a34a' : '#dc2626', fontWeight: 500 }}>
+            <div style={{ fontSize: 13, color: inStock ? '#3fb950' : '#f85149', fontWeight: 500 }}>
               {inStock ? `✓ In Stock (${product.stock} available)` : '✗ Out of Stock'}
             </div>
             {product.warranty && (
-              <div style={{ fontSize: 13, color: '#92400e', marginTop: 8, fontWeight: 500 }}>
+              <div style={{ fontSize: 13, color: '#e3b341', marginTop: 8, fontWeight: 500 }}>
                 🛡️ Warranty: {product.warranty} days
               </div>
             )}
           </div>
 
           {Object.keys(product.specs || {}).length > 0 && (
-            <div style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: 12, padding: 20, boxShadow: '0 1px 3px rgba(2,60,90,0.06)' }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
               <div style={{ color: 'var(--text)', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Specifications</div>
               {Object.entries(product.specs).map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
@@ -118,7 +118,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
             {related.map((p: Product, i: number) => (
               <Link key={p.id} href={`/store/product/${p.id}`} style={{ textDecoration: 'none' }} className="reveal" >
-                <div className="store-card" style={{ background: '#ffffff', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(2,60,90,0.06)' }}>
+                <div className="store-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
                   <div style={{ background: 'var(--brand-50)', height: 140, position: 'relative' }}>
                     {p.images?.[0]
                       ? <Image src={p.images[0]} alt={p.name} fill style={{ objectFit: 'contain', padding: 12 }} sizes="220px" />
