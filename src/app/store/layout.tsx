@@ -17,7 +17,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
 
         <main className="store-main-offset">{children}</main>
 
-        <footer style={{ background: '#eaf5fc', borderTop: '1px solid var(--border)', padding: '28px 0', marginTop: 60 }}>
+        <footer style={{ background: '#080c12', borderTop: '1px solid var(--border)', padding: '28px 0', marginTop: 60 }}>
           <div className="store-main-offset" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <span style={{ color: 'var(--muted)', fontSize: 13 }}>© 2026 Ziad Mohamed</span>
             <div style={{ display: 'flex', gap: 16 }}>
