@@ -20,8 +20,8 @@ export default function AddToCartButton({ product }: { product: Product }) {
       width: '100%', border: 'none', borderRadius: 10,
       padding: '14px', fontSize: 15, fontWeight: 600,
       cursor: inStock ? 'pointer' : 'not-allowed',
-      background: added ? '#dcfce7' : inStock ? undefined : '#f1f5f9',
-      color: added ? '#16a34a' : inStock ? '#fff' : '#94a3b8',
+      background: added ? '#1a4d1a' : inStock ? undefined : '#1a2233',
+      color: added ? '#3fb950' : inStock ? '#fff' : '#4a5568',
     }}>
       {added ? '✓ Added to Cart' : inStock ? '+ Add to Cart' : 'Out of Stock'}
     </button>
