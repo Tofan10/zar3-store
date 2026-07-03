@@ -35,11 +35,11 @@ export default function ProductCarousel({ title, icon, products, anchorId }: { t
         </h2>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => scrollByCards(-1)} aria-label="Previous"
-            style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)', background: '#fff', color: 'var(--brand-dark)', cursor: 'pointer', fontSize: 15 }}>
+            style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--brand-dark)', cursor: 'pointer', fontSize: 15 }}>
             ‹
           </button>
           <button onClick={() => scrollByCards(1)} aria-label="Next"
-            style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)', background: '#fff', color: 'var(--brand-dark)', cursor: 'pointer', fontSize: 15 }}>
+            style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--brand-dark)', cursor: 'pointer', fontSize: 15 }}>
             ›
           </button>
         </div>
