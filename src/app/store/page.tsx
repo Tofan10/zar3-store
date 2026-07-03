@@ -21,11 +21,10 @@ export default async function StorePage() {
   const groups = groupCategories(categories)
 
   return (
-    // store-main-offset عشان المحتوى متتغطاش بالسايدبار على الديسكتوب
-    <div>
+    <div style={{ paddingTop: 20 }}>
 
       {/* HERO SECTION */}
-      <div style={{ background: 'linear-gradient(135deg, #0369a1, #0ea5e9 55%, #38bdf8)', textAlign: 'center', position: 'relative', overflow: 'hidden', width: '100vw', marginLeft: 'calc(50% - 50vw)' }}
+      <div style={{ background: 'linear-gradient(135deg, #0369a1, #0ea5e9 55%, #38bdf8)', textAlign: 'center', position: 'relative', overflow: 'hidden', borderRadius: 16 }}
         className="px-4 py-12 sm:py-20">
         <div style={{ position: 'absolute', inset: 0, opacity: 0.15, backgroundImage: 'radial-gradient(circle at 20% 30%, #fff 0, transparent 40%), radial-gradient(circle at 80% 70%, #fff 0, transparent 40%)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -64,7 +63,7 @@ export default async function StorePage() {
       </div>
 
       {/* TAGLINE STRIP */}
-      <div style={{ background: '#080c12', borderBottom: '1px solid var(--border)', textAlign: 'center', padding: '10px 16px', width: '100vw', marginLeft: 'calc(50% - 50vw)' }}>
+      <div style={{ background: '#080c12', border: '1px solid var(--border)', borderRadius: 10, textAlign: 'center', padding: '10px 16px', marginTop: 16 }}>
         <span style={{ color: 'var(--brand-dark)', fontSize: 12.5, fontWeight: 700, letterSpacing: 0.6 }}>
           CHECK LATEST PRODUCTS FROM HARDWARE, ACCESSORIES, AND MONITORS
         </span>
