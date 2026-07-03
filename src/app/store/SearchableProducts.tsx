@@ -44,13 +44,13 @@ export default function SearchableProducts({ products }: { products: Product[] }
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{
-            width: '100%', background: '#ffffff', border: '1px solid var(--border)',
+            width: '100%', background: 'var(--surface)', border: '1px solid var(--border)',
             borderRadius: 10, padding: '12px 16px', fontSize: 15, color: 'var(--text)',
             outline: 'none', boxSizing: 'border-box', marginBottom: 8,
-            boxShadow: '0 1px 3px rgba(2,60,90,0.06)', transition: 'border-color 0.2s, box-shadow 0.2s',
+            boxShadow: 'none', transition: 'border-color 0.2s, box-shadow 0.2s',
           }}
           onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(14,165,233,0.15)' }}
-          onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = '0 1px 3px rgba(2,60,90,0.06)' }}
+          onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
         />
 
         {/* Sort row */}
@@ -68,7 +68,7 @@ export default function SearchableProducts({ products }: { products: Product[] }
                 key={opt.value}
                 onClick={() => setSort(opt.value)}
                 style={{
-                  background: sort === opt.value ? 'var(--brand-100)' : '#ffffff',
+                  background: sort === opt.value ? 'var(--brand-100)' : 'var(--surface)',
                   border: `1px solid ${sort === opt.value ? 'var(--brand)' : 'var(--border)'}`,
                   color: sort === opt.value ? 'var(--brand-dark)' : 'var(--muted)',
                   borderRadius: 6, padding: '5px 10px', fontSize: 12,
