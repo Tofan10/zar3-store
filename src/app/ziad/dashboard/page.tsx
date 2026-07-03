@@ -377,6 +377,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
     name: product?.name || '',
     description: product?.description || '',
     price: product?.price || 0,
+    original_price: (product as any)?.original_price ?? '',
     stock: product?.stock || 0,
     category_id: product?.category_id || '',
     images: product?.images || [] as string[],
@@ -447,7 +448,7 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
     setError('')
     const specs: Record<string, string> = {}
     form.specs.split('\n').forEach((line: string) => { if (line.trim()) specs[line.trim()] = '' })
-    const body = { ...form, specs, price: Number(form.price), stock: Number(form.stock), warranty: form.warranty !== '' ? Number(form.warranty) : null }
+    const body = { ...form, specs, price: Number(form.price), original_price: form.original_price !== '' ? Number(form.original_price) : null, stock: Number(form.stock), warranty: form.warranty !== '' ? Number(form.warranty) : null }
     const url = product ? `/api/products/${product.id}` : '/api/products'
     const method = product ? 'PUT' : 'POST'
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -481,6 +482,10 @@ function ProductForm({ product, categories, onClose }: { product: Product | null
           <div>
             <label style={labelStyle}>Price (EGP) *</label>
             <input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: Number(e.target.value) }))} min={0} required />
+          </div>
+          <div>
+            <label style={labelStyle}>Original Price (before discount) — optional</label>
+            <input type="number" value={form.original_price} onChange={e => setForm(f => ({ ...f, original_price: e.target.value }))} min={0} placeholder="e.g. 5000 (shows a Sale badge)" />
           </div>
           <div>
             <label style={labelStyle}>Stock Quantity *</label>

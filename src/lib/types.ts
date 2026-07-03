@@ -12,6 +12,7 @@ export interface Product {
   name: string
   description: string
   price: number
+  original_price: number | null
   stock: number
   category_id: string
   category?: Category

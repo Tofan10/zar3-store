@@ -3,6 +3,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Product } from '@/lib/types'
 import { useCart } from '@/lib/CartContext'
+import { useQuickView } from '@/lib/QuickViewContext'
+import { getDiscount } from '@/lib/pricing'
 
 function getOptimizedUrl(url: string) {
   if (url && url.includes('res.cloudinary.com')) {
@@ -13,10 +15,12 @@ function getOptimizedUrl(url: string) {
 
 export default function ProductCard({ product, isNew }: { product: Product; isNew?: boolean }) {
   const { addItem, items } = useCart()
+  const { open: openQuickView } = useQuickView()
   const [added, setAdded] = useState(false)
   const inStock = product.stock > 0
   const cartItem = items.find(i => i.product.id === product.id)
   const cartQty = cartItem?.quantity || 0
+  const discount = getDiscount(product.price, product.original_price)
 
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault()
@@ -24,6 +28,12 @@ export default function ProductCard({ product, isNew }: { product: Product; isNe
     addItem(product)
     setAdded(true)
     setTimeout(() => setAdded(false), 1200)
+  }
+
+  function handleQuickView(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    openQuickView(product)
   }
 
   const imgUrl = product.images?.[0] ? getOptimizedUrl(product.images[0]) : null
@@ -39,7 +49,7 @@ export default function ProductCard({ product, isNew }: { product: Product; isNe
         }}
       >
         {/* Image */}
-        <div style={{ background: 'var(--brand-50)', height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+        <div className="product-card-img" style={{ background: 'var(--brand-50)', height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
           {imgUrl ? (
             <img
               src={imgUrl}
@@ -51,10 +61,35 @@ export default function ProductCard({ product, isNew }: { product: Product; isNe
             <span style={{ fontSize: 44, opacity: 0.25 }}>🖥️</span>
           )}
 
+          {/* Quickview button — appears on hover */}
+          <button
+            onClick={handleQuickView}
+            className="quickview-btn"
+            title="Quick View"
+            style={{
+              position: 'absolute', bottom: 8, right: 8, width: 30, height: 30, borderRadius: '50%',
+              background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--brand-dark)',
+              cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              zIndex: 3, opacity: 0, transform: 'translateY(6px)', transition: 'opacity 0.2s, transform 0.2s',
+            }}
+          >
+            👁
+          </button>
+
+          {/* Discount ribbon */}
+          {discount && (
+            <div style={{
+              position: 'absolute', top: 8, left: 8, background: '#f85149', color: '#fff',
+              fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, zIndex: 2,
+            }}>
+              -{discount.percent}%
+            </div>
+          )}
+
           {/* NEW ribbon */}
           {isNew && (
             <div style={{
-              position: 'absolute', top: 10, left: -32, width: 120, textAlign: 'center',
+              position: 'absolute', top: discount ? 34 : 10, left: -32, width: 120, textAlign: 'center',
               background: 'linear-gradient(135deg, #38bdf8, #0ea5e9)', color: '#fff',
               fontSize: 10, fontWeight: 700, letterSpacing: 1, padding: '3px 0',
               transform: 'rotate(-40deg)', boxShadow: '0 2px 6px rgba(14,165,233,0.5)', zIndex: 2,
@@ -95,8 +130,15 @@ export default function ProductCard({ product, isNew }: { product: Product; isNe
           {/* Price + Stock + Button */}
           <div style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--brand-dark)' }}>
-                {product.price.toLocaleString()} EGP
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--brand-dark)' }}>
+                  {product.price.toLocaleString()} EGP
+                </span>
+                {discount && (
+                  <span style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'line-through' }}>
+                    {discount.originalPrice.toLocaleString()}
+                  </span>
+                )}
               </div>
               <div style={{ fontSize: 11, color: inStock ? '#3fb950' : '#f85149', fontWeight: 500 }}>
                 {inStock ? `In Stock (${product.stock})` : 'Out of Stock'}

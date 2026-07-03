@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import AddToCartButton from './AddToCartButton'
+import { getDiscount } from '@/lib/pricing'
 
 export const revalidate = 60
 
@@ -26,6 +27,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     .limit(4)
 
   const inStock = product.stock > 0
+  const discount = getDiscount(product.price, product.original_price)
 
   return (
     <div className="reveal" style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
@@ -41,6 +43,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden' }}>
           {product.images?.[0] ? (
             <div style={{ position: 'relative', height: 380, background: 'var(--brand-50)' }}>
+              {discount && (
+                <div style={{
+                  position: 'absolute', top: 14, left: 14, background: '#f85149', color: '#fff',
+                  fontSize: 13, fontWeight: 700, padding: '5px 12px', borderRadius: 8, zIndex: 2,
+                }}>
+                  -{discount.percent}% OFF
+                </div>
+              )}
               <Image
                 src={product.images[0]}
                 alt={product.name}
@@ -72,7 +82,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           </div>
 
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
-            <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--brand-dark)', marginBottom: 4 }}>{product.price.toLocaleString()} EGP</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+              <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--brand-dark)', marginBottom: 4 }}>{product.price.toLocaleString()} EGP</div>
+              {discount && (
+                <div style={{ fontSize: 17, color: 'var(--muted)', textDecoration: 'line-through' }}>{discount.originalPrice.toLocaleString()} EGP</div>
+              )}
+            </div>
             <div style={{ fontSize: 13, color: inStock ? '#3fb950' : '#f85149', fontWeight: 500 }}>
               {inStock ? `✓ In Stock (${product.stock} available)` : '✗ Out of Stock'}
             </div>

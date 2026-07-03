@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase'
 import { CartProvider } from '@/lib/CartContext'
+import { QuickViewProvider } from '@/lib/QuickViewContext'
 import StoreNavbar from '@/components/store/StoreNavbar'
+import QuickViewModal from '@/components/store/QuickViewModal'
 
 async function getCategories() {
   const { data } = await supabase.from('categories').select('*').order('sort_order')
@@ -11,6 +13,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
   const categories = await getCategories()
   return (
     <CartProvider>
+      <QuickViewProvider>
       <div className="min-h-screen" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
 
         <StoreNavbar categories={categories} />
@@ -27,7 +30,10 @@ export default async function StoreLayout({ children }: { children: React.ReactN
           </div>
         </footer>
 
+        <QuickViewModal />
+
       </div>
+      </QuickViewProvider>
     </CartProvider>
   )
 }
