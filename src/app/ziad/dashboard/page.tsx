@@ -158,7 +158,7 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<{ inserted?: number; updated?: number; deleted?: number; skipped?: any[]; error?: string } | null>(null)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('active')
   const importRef = useRef<HTMLInputElement>(null)
 
   const sorted = [...products].sort((a: any, b: any) => {
@@ -275,9 +275,9 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {([
-          { key: 'all', label: `All (${products.length})` },
           { key: 'active', label: `Active (${activeCount})` },
           { key: 'inactive', label: `Inactive (${inactiveCount})` },
+          { key: 'all', label: `All (${products.length})` },
         ] as const).map(f => (
           <button key={f.key} onClick={() => setStatusFilter(f.key)}
             style={{
