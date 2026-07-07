@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ProductCard from '@/components/store/ProductCard'
 import { Product } from '@/lib/types'
@@ -21,6 +21,13 @@ export default function SearchableProducts({ products }: { products: Product[] }
   const searchParams = useSearchParams()
   const [search, setSearch] = useState(searchParams.get('q') || '')
   const [sort, setSort] = useState<SortOption>('default')
+
+  // Keeps this in sync when the top search bar navigates to /store?q=...
+  // (the component doesn't remount on a query-only navigation, so we
+  // need to react to the param changing, not just read it once)
+  useEffect(() => {
+    setSearch(searchParams.get('q') || '')
+  }, [searchParams])
 
   const featured = products.filter(p => p.featured)
 
