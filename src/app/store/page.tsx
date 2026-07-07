@@ -1,7 +1,9 @@
 import { supabase } from '@/lib/supabase'
+import { Suspense } from 'react'
 import SearchableProducts from './SearchableProducts'
 import ProductCarousel from '@/components/store/ProductCarousel'
 import BrandStrip from '@/components/store/BrandStrip'
+import TopSearchBar from '@/components/store/TopSearchBar'
 import { groupCategories } from '@/lib/categoryGroups'
 
 const LOGO_URL = 'https://gumjhqrfsvngjppciowu.supabase.co/storage/v1/object/sign/logo/481354976_122205531740136612_8758662314822517452_n.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV84MDU0Y2IzOC04OWQ3LTQzODgtODM4ZC02MmE4MGJmODE3NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJsb2dvLzQ4MTM1NDk3Nl8xMjIyMDU1MzE3NDAxMzY2MTJfODc1ODY2MjMxNDgyMjUxNzQ1Ml9uLmpwZyIsImlhdCI6MTc3NzI1Mjg2NiwiZXhwIjoyMDkyNjEyODY2fQ.DktxglH6FH6lD5_5wMCoOs4yZPtnGAotyvike91iPqY'
@@ -22,6 +24,8 @@ export default async function StorePage() {
 
   return (
     <div style={{ paddingTop: 20 }}>
+
+      <TopSearchBar />
 
       {/* HERO SECTION */}
       <div style={{ background: 'linear-gradient(135deg, #0369a1, #0ea5e9 55%, #38bdf8)', textAlign: 'center', position: 'relative', overflow: 'hidden', borderRadius: 16 }}
@@ -93,7 +97,9 @@ export default async function StorePage() {
 
         <BrandStrip products={products} />
 
+        <Suspense fallback={null}>
         <SearchableProducts products={products} />
+      </Suspense>
       </div>
 
     </div>

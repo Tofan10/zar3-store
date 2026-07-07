@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import ProductCard from '@/components/store/ProductCard'
 import { Product } from '@/lib/types'
 
@@ -17,7 +18,8 @@ function sortProducts(products: Product[], sort: SortOption) {
 }
 
 export default function SearchableProducts({ products }: { products: Product[] }) {
-  const [search, setSearch] = useState('')
+  const searchParams = useSearchParams()
+  const [search, setSearch] = useState(searchParams.get('q') || '')
   const [sort, setSort] = useState<SortOption>('default')
 
   const featured = products.filter(p => p.featured)
@@ -28,10 +30,11 @@ export default function SearchableProducts({ products }: { products: Product[] }
       (p.description && p.description.toLowerCase().includes(search.toLowerCase()))
     ),
     sort
+
   )
 
   return (
-    <div>
+    <div id="all-products-search">
       {/* Sticky search + sort bar */}
       <div style={{
         position: 'sticky', top: 96, zIndex: 90,

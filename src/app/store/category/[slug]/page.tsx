@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { Suspense } from 'react'
 import { Product } from '@/lib/types'
 import { notFound } from 'next/navigation'
 import SearchableProducts from '../../SearchableProducts'
@@ -30,7 +31,9 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <div style={{ color: 'var(--brand)', fontSize: 13, marginTop: 8, fontWeight: 600 }}>{products.length} products available</div>
       </div>
 
-      <SearchableProducts products={products} />
+      <Suspense fallback={null}>
+        <SearchableProducts products={products} />
+      </Suspense>
     </div>
   )
 }

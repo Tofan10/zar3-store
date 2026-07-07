@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import SearchableProducts from '../../SearchableProducts'
 import { BRANDS, brandSlug } from '@/lib/brands'
@@ -33,7 +34,9 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
         <div style={{ color: 'var(--brand)', fontSize: 13, marginTop: 8, fontWeight: 600 }}>{products.length} products available</div>
       </div>
 
-      <SearchableProducts products={products} />
+      <Suspense fallback={null}>
+        <SearchableProducts products={products} />
+      </Suspense>
     </div>
   )
 }
