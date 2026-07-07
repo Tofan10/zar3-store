@@ -247,6 +247,37 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
 
   return (
     <div>
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 50, background: '#0d1117',
+        paddingTop: 4, paddingBottom: 12, marginBottom: 8,
+      }}>
+        <input type="text" placeholder="🔍 Search products..." value={search} onChange={e => setSearch(e.target.value)}
+          style={{ width: '100%', background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e6edf3', outline: 'none', boxSizing: 'border-box', marginBottom: 12 }}
+          onFocus={e => e.target.style.borderColor = '#378ADD'}
+          onBlur={e => e.target.style.borderColor = '#21262d'}
+        />
+
+        <div style={{ display: 'flex', gap: 8 }}>
+          {([
+            { key: 'active', label: `Active (${activeCount})` },
+            { key: 'inactive', label: `Inactive (${inactiveCount})` },
+            { key: 'all', label: `All (${products.length})` },
+          ] as const).map(f => (
+            <button key={f.key} onClick={() => setStatusFilter(f.key)}
+              style={{
+                background: statusFilter === f.key ? (f.key === 'inactive' ? '#3a0d0d' : '#0c2a4a') : 'transparent',
+                border: `1px solid ${statusFilter === f.key ? (f.key === 'inactive' ? '#f85149' : '#378ADD') : '#21262d'}`,
+                color: statusFilter === f.key ? (f.key === 'inactive' ? '#ff8080' : '#85b7eb') : '#8b949e',
+                borderRadius: 8, padding: '7px 16px', fontSize: 13, cursor: 'pointer', fontWeight: 500, transition: 'all 0.15s'
+              }}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {search && <div style={{ color: '#8b949e', fontSize: 13, marginTop: 12 }}>{filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"</div>}
+      </div>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 style={{ color: '#e6edf3', fontSize: 18, fontWeight: 500 }}>Products</h2>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -266,32 +297,6 @@ function ProductsTab({ products, categories, onAdd, onEdit, onDelete, onToggleAc
           <button onClick={() => setImportResult(null)} style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 16 }}>×</button>
         </div>
       )}
-
-      <input type="text" placeholder="🔍 Search products..." value={search} onChange={e => setSearch(e.target.value)}
-        style={{ width: '100%', background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e6edf3', outline: 'none', boxSizing: 'border-box', marginBottom: 12 }}
-        onFocus={e => e.target.style.borderColor = '#378ADD'}
-        onBlur={e => e.target.style.borderColor = '#21262d'}
-      />
-
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {([
-          { key: 'active', label: `Active (${activeCount})` },
-          { key: 'inactive', label: `Inactive (${inactiveCount})` },
-          { key: 'all', label: `All (${products.length})` },
-        ] as const).map(f => (
-          <button key={f.key} onClick={() => setStatusFilter(f.key)}
-            style={{
-              background: statusFilter === f.key ? (f.key === 'inactive' ? '#3a0d0d' : '#0c2a4a') : 'transparent',
-              border: `1px solid ${statusFilter === f.key ? (f.key === 'inactive' ? '#f85149' : '#378ADD') : '#21262d'}`,
-              color: statusFilter === f.key ? (f.key === 'inactive' ? '#ff8080' : '#85b7eb') : '#8b949e',
-              borderRadius: 8, padding: '7px 16px', fontSize: 13, cursor: 'pointer', fontWeight: 500, transition: 'all 0.15s'
-            }}>
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      {search && <div style={{ color: '#8b949e', fontSize: 13, marginBottom: 12 }}>{filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"</div>}
 
       {showForm && !editingProduct && <ProductForm categories={categories} product={null} onClose={onFormClose} />}
 
