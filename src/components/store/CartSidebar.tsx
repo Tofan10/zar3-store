@@ -65,11 +65,11 @@ export default function CartSidebar() {
       doc.setFillColor(26, 111, 196)
       doc.rect(0, 32, pageW, 1.2, 'F')
       doc.setFillColor(255, 255, 255)
-      doc.circle(margin + 12, 16, 12, 'F')
+      doc.circle(margin + 12, 16, 11, 'F')
 
       try {
-        const img = await loadImageAsBase64(LOGO_URL)
-        doc.addImage(img, 'JPEG', margin + 1, 5, 24, 24, undefined, 'FAST')
+        const img = await loadCircularLogoAsBase64(LOGO_URL)
+        doc.addImage(img, 'PNG', margin + 2, 6, 20, 20, undefined, 'FAST')
       } catch {}
 
       doc.setFont('helvetica', 'bold')
@@ -332,17 +332,34 @@ export default function CartSidebar() {
   )
 }
 
-function loadImageAsBase64(url: string): Promise<string> {
+// Crops the logo to a clean centered circle (cover-style crop) so it sits
+// neatly inside the PDF header badge instead of showing as a mismatched
+// square photo with corners poking out.
+function loadCircularLogoAsBase64(url: string, size = 240): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => {
       const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
+      canvas.width = size
+      canvas.height = size
       const ctx = canvas.getContext('2d')!
-      ctx.drawImage(img, 0, 0)
-      resolve(canvas.toDataURL('image/jpeg'))
+
+      // Circular clip
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
+      ctx.closePath()
+      ctx.clip()
+
+      // Cover-crop the source image into the square canvas (centered)
+      const srcSize = Math.min(img.width, img.height)
+      const sx = (img.width - srcSize) / 2
+      const sy = (img.height - srcSize) / 2
+      ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, size, size)
+      ctx.restore()
+
+      resolve(canvas.toDataURL('image/png'))
     }
     img.onerror = reject
     img.src = url
