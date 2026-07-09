@@ -1,14 +1,11 @@
 import Link from 'next/link'
-import { BRANDS, brandSlug } from '@/lib/brands'
+import { BRANDS, brandSlug, detectBrand } from '@/lib/brands'
 import { Product } from '@/lib/types'
 
 export default function BrandStrip({ products }: { products: Product[] }) {
   // Only show brands that actually have products in the catalog
   const activeBrands = BRANDS.filter(b => {
-    return products.some(p => {
-      const name = ` ${p.name.toLowerCase()} `
-      return b.match.some(kw => name.includes(kw))
-    })
+    return products.some(p => detectBrand(p.name)?.name === b.name)
   })
 
   if (activeBrands.length === 0) return null

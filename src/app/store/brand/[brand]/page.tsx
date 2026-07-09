@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import SearchableProducts from '../../SearchableProducts'
-import { BRANDS, brandSlug } from '@/lib/brands'
+import { BRANDS, brandSlug, detectBrand } from '@/lib/brands'
 
 export const revalidate = 60
 
@@ -14,10 +14,7 @@ async function getData(slug: string) {
     .select('*, category:categories(*)')
     .eq('active', true)
     .order('created_at', { ascending: false })
-  const products = (allProducts || []).filter(p => {
-    const name = ` ${p.name.toLowerCase()} `
-    return brand.match.some(kw => name.includes(kw))
-  })
+  const products = (allProducts || []).filter(p => detectBrand(p.name)?.name === brand.name)
   return { brand, products }
 }
 
