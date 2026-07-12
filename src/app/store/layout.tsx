@@ -4,6 +4,7 @@ import { QuickViewProvider } from '@/lib/QuickViewContext'
 import StoreNavbar from '@/components/store/StoreNavbar'
 import QuickViewModal from '@/components/store/QuickViewModal'
 import CategorySidebar from '@/components/store/CategorySidebar'
+import ChatWidget from '@/components/store/ChatWidget'
 
 async function getCategories() {
   const { data } = await supabase.from('categories').select('*').order('sort_order')
@@ -37,6 +38,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
         </footer>
 
         <QuickViewModal />
+        <ChatWidget />
 
       </div>
       </QuickViewProvider>
