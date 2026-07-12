@@ -5,16 +5,27 @@ type Msg = { role: 'user' | 'assistant'; content: string }
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false)
+  const [showTeaser, setShowTeaser] = useState(false)
   const [messages, setMessages] = useState<Msg[]>([
-    { role: 'assistant', content: 'Hey! 👋 Ask me anything about our products — what\'s in stock, prices, or what fits your build.\n\nأهلاً! اسألني عن أي منتج، السعر، أو المتوفر عندنا دلوقتي.' },
+    { role: 'assistant', content: 'أهلاً بيك! 👋 أنا مساعدك الذكي من ZAR3 هاردوير، اسألني عن أي منتج، سعره، أو المتوفر عندنا دلوقتي، أو قولّي ميزانيتك وهجهزلك تجميعة مناسبة.\n\nHey! I\'m ZAR3 Hardware\'s smart assistant — ask me about any product, price, stock, or your budget for a full build.' },
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    const t = setTimeout(() => setShowTeaser(true), 1800)
+    return () => clearTimeout(t)
+  }, [])
+
+  useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, loading])
+
+  function openChat() {
+    setOpen(true)
+    setShowTeaser(false)
+  }
 
   async function send() {
     const text = input.trim()
@@ -45,28 +56,66 @@ export default function ChatWidget() {
     <>
       <style>{`
         @keyframes chatPop { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes teaserPop { from { opacity: 0; transform: translateY(10px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes typingDot { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
-        .chat-fab { animation: floatY 3s ease-in-out infinite; }
+        @keyframes fabGlow { 0%, 100% { box-shadow: 0 10px 30px -8px rgba(14,165,233,0.6), 0 0 0 0 rgba(56,189,248,0.5); } 50% { box-shadow: 0 10px 30px -8px rgba(14,165,233,0.6), 0 0 0 10px rgba(56,189,248,0); } }
+        @keyframes badgePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        .chat-fab { animation: floatY 3s ease-in-out infinite, fabGlow 2.4s ease-in-out infinite; }
         .chat-panel { animation: chatPop 0.25s cubic-bezier(0.16,1,0.3,1); }
+        .chat-teaser { animation: teaserPop 0.3s cubic-bezier(0.16,1,0.3,1); }
+        .chat-ai-badge { animation: badgePulse 1.6s ease-in-out infinite; }
         .typing-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: typingDot 1.2s ease-in-out infinite; }
       `}</style>
 
+      {/* Teaser intro bubble */}
+      {showTeaser && !open && (
+        <div className="chat-teaser" style={{
+          position: 'fixed', bottom: 92, left: 20, zIndex: 200,
+          maxWidth: 260, background: 'var(--surface)', border: '1px solid var(--brand)',
+          borderRadius: '14px 14px 14px 2px', padding: '12px 14px',
+          boxShadow: '0 16px 34px -10px rgba(14,165,233,0.5)',
+        }}>
+          <button onClick={() => setShowTeaser(false)} style={{
+            position: 'absolute', top: -8, right: -8, width: 22, height: 22, borderRadius: '50%',
+            background: 'var(--border)', border: '1px solid var(--surface)', color: 'var(--text)',
+            fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>✕</button>
+          <div onClick={openChat} style={{ cursor: 'pointer' }}>
+            <div style={{ color: 'var(--brand-dark)', fontSize: 12.5, fontWeight: 700, marginBottom: 4 }}>🤖 أنا مساعدك الذكي من ZAR3!</div>
+            <div style={{ color: 'var(--muted)', fontSize: 12, lineHeight: 1.5 }}>اسألني عن أي منتج أو قولّي ميزانيتك وهجهزلك تجميعة 👇</div>
+          </div>
+        </div>
+      )}
+
       {/* Floating button */}
       {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          className="chat-fab"
-          aria-label="Chat with AI assistant"
-          style={{
-            position: 'fixed', bottom: 20, left: 20, zIndex: 200,
-            width: 58, height: 58, borderRadius: '50%', border: 'none', cursor: 'pointer',
-            background: 'linear-gradient(135deg, #38bdf8, #0ea5e9)',
-            boxShadow: '0 10px 30px -8px rgba(14,165,233,0.6)',
-            fontSize: 26, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-        >
-          💬
-        </button>
+        <div style={{ position: 'fixed', bottom: 20, left: 20, zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={openChat}
+            className="chat-fab"
+            aria-label="Chat with ZAR3's AI assistant"
+            style={{
+              position: 'relative',
+              width: 64, height: 64, borderRadius: '50%', border: 'none', cursor: 'pointer',
+              background: 'linear-gradient(135deg, #38bdf8, #0ea5e9)',
+              fontSize: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            🤖
+            <span className="chat-ai-badge" style={{
+              position: 'absolute', top: -4, right: -4, background: '#f85149', color: '#fff',
+              fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 20,
+              border: '2px solid var(--bg)',
+            }}>AI</span>
+          </button>
+          <span style={{
+            background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)',
+            fontSize: 10.5, fontWeight: 600, padding: '3px 10px', borderRadius: 20,
+            boxShadow: '0 4px 10px -4px rgba(0,0,0,0.4)',
+          }}>
+            مساعد ذكي 💬
+          </span>
+        </div>
       )}
 
       {/* Chat panel */}
@@ -86,8 +135,8 @@ export default function ChatWidget() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 18 }}>🤖</span>
               <div>
-                <div style={{ color: '#fff', fontSize: 13.5, fontWeight: 700 }}>ZAR3 Assistant</div>
-                <div style={{ color: '#e0f2fe', fontSize: 10.5 }}>Ask about stock, prices & specs</div>
+                <div style={{ color: '#fff', fontSize: 13.5, fontWeight: 700 }}>مساعدك الذكي من ZAR3</div>
+                <div style={{ color: '#e0f2fe', fontSize: 10.5 }}>اسأل عن الستوك، الأسعار، والمواصفات</div>
               </div>
             </div>
             <button onClick={() => setOpen(false)} style={{
@@ -128,7 +177,7 @@ export default function ChatWidget() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') send() }}
-              placeholder="Ask about a product..."
+              placeholder="اسأل عن منتج..."
               style={{
                 flex: 1, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10,
                 padding: '9px 12px', fontSize: 13, color: 'var(--text)', outline: 'none',
