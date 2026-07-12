@@ -37,8 +37,8 @@ export const BRANDS: Brand[] = [
 //          optionally followed by a suffix letter like F/K/KF/T/KS.
 //   AMD:   a bare Ryzen-style model number (1000-9000 series), optionally
 //          followed by a suffix like X/G/XT/X3D.
-const INTEL_MODEL = /\bi[3579][\s-]?\d{3,5}[a-z]{0,2}\b|\bultra\s?[3579]\b|\b(?:9\d{3}|1[0-4]\d{3}|2\d{2})(?:k|kf|f|t|ks)?\b/i
-const AMD_MODEL = /\b[1-9]\d{3}(?:x3d|xt|x|g|ge)?\b/i
+const INTEL_MODEL = /\bi[3579][\s-]?\d{3,5}[a-z]{0,2}\b|\bultra\s?[3579]\b|\b1[0-4]\d{3}(?:k|kf|f|t|ks)?\b|\b9\d{3}(?:k|kf|f|t|ks)\b|\b2\d{2}(?:k|kf|f|t|ks)\b/i
+const AMD_MODEL = /\b[1-9]\d{3}(?:x3d|xt|x|g|ge)\b/i
 
 export function detectBrand(productName: string): Brand | null {
   const n = ` ${productName.toLowerCase()} `
