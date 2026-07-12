@@ -7,6 +7,15 @@ export interface Category {
   created_at: string
 }
 
+export interface Bundle {
+  id: string
+  name: string
+  description: string
+  product_ids: string[]
+  active: boolean
+  created_at: string
+}
+
 export interface Product {
   id: string
   name: string

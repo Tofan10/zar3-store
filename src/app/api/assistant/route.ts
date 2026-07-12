@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { parseIntent, BUILD_ALLOCATION } from '@/lib/assistantIntent'
+import { parseIntent } from '@/lib/assistantIntent'
 
 // Lightweight, free AI shopping assistant for the storefront.
 // Uses Groq's free/fast API (OpenAI-compatible) and grounds every answer
 // in a live lookup against the products table — never invents stock or
-// prices. Understands budget + category + "build me a PC" intent, not just
-// literal product-name keyword matches.
+// prices. For full-build requests it ONLY recommends from the store
+// owner's pre-verified "Ready-made Bundles" (see /ziad/dashboard → Ready
+// Bundles) — it never assembles a combination of parts itself, since it
+// can't reliably confirm things like CPU/motherboard socket compatibility
+// from product names alone.
 
 const PRODUCT_FIELDS = 'name, price, original_price, stock, description, warranty, category:categories(name,slug)'
 
@@ -25,6 +28,29 @@ function formatProduct(p: any) {
   return `- ${p.name} | ${cat} | ${price} | Stock: ${stock}${warranty}`
 }
 
+async function getBundles() {
+  const { data: bundles } = await supabase.from('bundles').select('*').eq('active', true)
+  if (!bundles || bundles.length === 0) return []
+
+  const allProductIds = Array.from(new Set(bundles.flatMap(b => b.product_ids || [])))
+  const { data: products } = allProductIds.length
+    ? await supabase.from('products').select('id, name, price, stock, active').in('id', allProductIds)
+    : { data: [] as any[] }
+  const byId = Object.fromEntries((products || []).map(p => [p.id, p]))
+
+  return bundles.map(b => {
+    const items = (b.product_ids || []).map((id: string) => byId[id]).filter(Boolean)
+    const total = items.reduce((s: number, p: any) => s + p.price, 0)
+    const inStock = items.length > 0 && items.every((p: any) => p.active && p.stock > 0)
+    return { name: b.name, description: b.description, items, total, inStock }
+  }).filter(b => b.inStock)
+}
+
+function formatBundle(b: any) {
+  const lines = b.items.map((p: any) => `  - ${p.name}`).join('\n')
+  return `${b.name}${b.description ? ` (${b.description})` : ''} — ${b.total.toLocaleString()} EGP total:\n${lines}`
+}
+
 export async function POST(req: NextRequest) {
   const { message, history } = await req.json()
 
@@ -40,38 +66,20 @@ export async function POST(req: NextRequest) {
   let productContext = ''
   let extraInstructions = ''
 
-  if (intent.isBuildRequest && intent.budget) {
-    // Full build request with a budget: pull realistic candidates per
-    // category, split across a rough budget allocation, so the model can
-    // assemble one or more complete builds within the total.
-    const sections: string[] = []
-    for (const part of BUILD_ALLOCATION) {
-      const subBudget = Math.round(intent.budget * part.share * 1.3) // some headroom
-      const catId = await getCategoryId(part.slug)
-      if (!catId) continue
-      const { data } = await supabase
-        .from('products')
-        .select(PRODUCT_FIELDS)
-        .eq('active', true)
-        .eq('category_id', catId)
-        .lte('price', subBudget)
-        .gt('stock', 0)
-        .order('price', { ascending: false })
-        .limit(3)
-      if (data && data.length) {
-        sections.push(`${part.label} (target ~${subBudget} EGP):\n${data.map(formatProduct).join('\n')}`)
-      }
-    }
-    productContext = sections.join('\n\n')
-    extraInstructions = `
-The customer wants a full PC build with a total budget of about ${intent.budget} EGP. Using ONLY the in-stock items listed below, pick exactly ONE item per part to form a single well-balanced build within the total budget.
+  if (intent.isBuildRequest) {
+    // Full build request: ONLY recommend from the store owner's
+    // pre-verified bundles — never assemble parts ourselves.
+    const bundles = await getBundles()
+    const inBudget = intent.budget
+      ? bundles.filter(b => b.total <= intent.budget! * 1.2).sort((a, b) => b.total - a.total)
+      : bundles
 
-Follow these rules strictly:
-- Use each part's name and category EXACTLY as written below — never rename or reinterpret a part (e.g. a "Computer Cases" item is a case, not "a computer").
-- Prefer at least 16GB of total RAM if any listed RAM option reaches that within budget; otherwise say plainly that it's below the recommended amount.
-- Make sure the CPU and motherboard are the same platform (AMD with AMD, Intel with Intel).
-- Be BRIEF: reply with just the picked part name + price on one line each, then the total, in well under 100 words — no extra explanation.
-- Finish with exactly this line so the customer can finalize and customize it themselves: "جهز الاختيار ده أو غيّر أي قطعة من صفحة /store/build 🛠️"`
+    productContext = inBudget.slice(0, 4).map(formatBundle).join('\n\n')
+    extraInstructions = `
+The customer wants a full PC build${intent.budget ? ` with a budget of about ${intent.budget} EGP` : ''}. Recommend ONLY from the READY-MADE BUNDLES listed below (pre-verified compatible by the store owner) — do NOT invent or assemble your own combination of parts, even if you think you could make a cheaper one.
+- If one or more bundles fit, list each one's name, its parts (each on its own line, prefixed with "- "), and its total price.
+- If NONE fit the budget, say so honestly and suggest the closest one anyway, or point them to WhatsApp (01124424414) so the team can build something custom for them.
+- Keep it brief — no long explanations.`
   } else if (intent.categorySlug && intent.budget) {
     // Category + budget: e.g. "GPU for 14k" — list every matching in-stock
     // item, not just a handful, since the customer explicitly wants to
@@ -87,7 +95,7 @@ Follow these rules strictly:
       .order('price', { ascending: false })
       .limit(12) : { data: [] }
     productContext = (data || []).map(formatProduct).join('\n')
-    extraInstructions = `\nThe customer has a budget of about ${intent.budget} EGP for this category. List ALL matching in-stock options below (not just one), sorted from best/most expensive to cheapest, with prices — let them compare and pick.`
+    extraInstructions = `\nThe customer has a budget of about ${intent.budget} EGP for this category. List ALL matching in-stock options below (not just one) as a bullet list, each on its own line prefixed with "- ", sorted from best/most expensive to cheapest, with prices — let them compare and pick. Do not merge them into a sentence or paragraph.`
   } else if (intent.categorySlug) {
     const catId = await getCategoryId(intent.categorySlug)
     const { data } = catId ? await supabase
@@ -98,6 +106,7 @@ Follow these rules strictly:
       .order('featured', { ascending: false })
       .limit(15) : { data: [] }
     productContext = (data || []).map(formatProduct).join('\n')
+    extraInstructions = `\nIf you list more than one product, put each on its own line prefixed with "- " — never merge multiple items into one sentence or paragraph.`
   } else {
     // Generic keyword search fallback against product names.
     const words = message
@@ -127,6 +136,7 @@ Follow these rules strictly:
       products = data || []
     }
     productContext = products.map(formatProduct).join('\n')
+    extraInstructions = `\nIf you list more than one product, put each on its own line prefixed with "- " — never merge multiple items into one sentence or paragraph.`
   }
 
   const systemPrompt = `You are the friendly shopping assistant for ZAR3 Hardware, a computer hardware store in Egypt (all prices in EGP).
@@ -134,15 +144,16 @@ Follow these rules strictly:
 Rules:
 - ONLY state stock levels and prices from the CURRENT STOCK DATA below — never invent or guess numbers.
 - Use each product's category exactly as given (e.g. a "Computer Cases" item is a case, not "a computer") — never relabel or reinterpret what something is.
+- Never assemble or suggest your own combination of separate parts (CPU + motherboard + RAM etc.) — you cannot reliably verify compatibility. Only ever recommend complete builds from the READY-MADE BUNDLES data when the customer wants a full PC.
 - If nothing below matches what the customer asked, say you're not sure and suggest they browse the site or message on WhatsApp/Facebook, rather than making something up.
-- Keep answers short and conversational (2-4 sentences) unless the customer asks for a build/comparison list.
+- Keep answers short and conversational (2-4 sentences) unless listing multiple items, in which case use a clean bullet list — one item per line, never run them together in a paragraph.
 - To order, point customers to WhatsApp (01124424414), the Facebook page, or the "Add to Cart" button on the product itself.
 - Reply in the same language the customer wrote in (Arabic or English). Be concise — don't repeat information already given in the conversation.${extraInstructions}
 
 CURRENT STOCK DATA (live from the database):
 ${productContext || 'No specific products matched this question — ask the customer to clarify what they are looking for (which category, and their budget).'}`
 
-  const maxTokens = intent.isBuildRequest ? 300 : intent.categorySlug && intent.budget ? 450 : 300
+  const maxTokens = intent.isBuildRequest ? 350 : intent.categorySlug && intent.budget ? 450 : 300
 
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {

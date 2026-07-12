@@ -2,31 +2,36 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { read, utils } from 'xlsx'
-import { Product, Category } from '@/lib/types'
+import { Product, Category, Bundle } from '@/lib/types'
 
-type Tab = 'stats' | 'products' | 'categories'
+type Tab = 'stats' | 'products' | 'categories' | 'bundles'
 
 export default function AdminDashboard() {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('stats')
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [bundles, setBundles] = useState<Bundle[]>([])
   const [loading, setLoading] = useState(true)
   const [showProductForm, setShowProductForm] = useState(false)
   const [showCatForm, setShowCatForm] = useState(false)
+  const [showBundleForm, setShowBundleForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [editingCat, setEditingCat] = useState<Category | null>(null)
+  const [editingBundle, setEditingBundle] = useState<Bundle | null>(null)
 
   useEffect(() => { fetchAll() }, [])
 
   async function fetchAll() {
     setLoading(true)
-    const [pr, cr] = await Promise.all([
+    const [pr, cr, br] = await Promise.all([
       fetch('/api/products?all=true').then(r => r.json()),
       fetch('/api/categories').then(r => r.json()),
+      fetch('/api/bundles?all=true').then(r => r.json()),
     ])
     if (!pr.error) setProducts(pr)
     if (!cr.error) setCategories(cr)
+    if (!br.error) setBundles(br)
     setLoading(false)
   }
 
@@ -44,6 +49,12 @@ export default function AdminDashboard() {
   async function deleteCategory(id: string) {
     if (!confirm('Delete this category? Products in it will lose their category.')) return
     await fetch('/api/categories', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    fetchAll()
+  }
+
+  async function deleteBundle(id: string) {
+    if (!confirm('Delete this bundle?')) return
+    await fetch(`/api/bundles/${id}`, { method: 'DELETE' })
     fetchAll()
   }
 
@@ -91,6 +102,7 @@ export default function AdminDashboard() {
           <button style={navStyle(tab === 'stats')} onClick={() => setTab('stats')}>Stats</button>
           <button style={navStyle(tab === 'products')} onClick={() => setTab('products')}>Products ({products.length})</button>
           <button style={navStyle(tab === 'categories')} onClick={() => setTab('categories')}>Categories ({categories.length})</button>
+          <button style={navStyle(tab === 'bundles')} onClick={() => setTab('bundles')}>🛠️ Ready Bundles ({bundles.length})</button>
         </div>
 
         {loading ? (
@@ -138,7 +150,7 @@ export default function AdminDashboard() {
             editingProduct={editingProduct}
             onFormClose={() => { setShowProductForm(false); setEditingProduct(null); fetchAll() }}
           />
-        ) : (
+        ) : tab === 'categories' ? (
           <CategoriesTab
             categories={categories}
             onAdd={() => { setEditingCat(null); setShowCatForm(true) }}
@@ -147,6 +159,16 @@ export default function AdminDashboard() {
             showForm={showCatForm}
             editingCat={editingCat}
             onFormClose={() => { setShowCatForm(false); setEditingCat(null); fetchAll() }}
+          />
+        ) : (
+          <BundlesTab
+            bundles={bundles} products={products}
+            onAdd={() => { setEditingBundle(null); setShowBundleForm(true) }}
+            onEdit={(b: Bundle) => { setEditingBundle(b); setShowBundleForm(true) }}
+            onDelete={deleteBundle}
+            showForm={showBundleForm}
+            editingBundle={editingBundle}
+            onFormClose={() => { setShowBundleForm(false); setEditingBundle(null); fetchAll() }}
           />
         )}
       </div>
@@ -377,6 +399,137 @@ function Toggle({ label, value, onChange }: { label: string; value: boolean; onC
   )
 }
 
+function BundlesTab({ bundles, products, onAdd, onEdit, onDelete, showForm, editingBundle, onFormClose }: any) {
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <div>
+          <h2 style={{ color: '#e6edf3', fontSize: 18, fontWeight: 500 }}>Ready-made Bundles</h2>
+          <p style={{ color: '#8b949e', fontSize: 12.5, marginTop: 4 }}>Pre-verified compatible builds you assemble yourself. The AI assistant only recommends from these — it never guesses part combinations.</p>
+        </div>
+        <button className="btn-primary" onClick={onAdd}>+ New Bundle</button>
+      </div>
+      {showForm && <BundleForm bundle={editingBundle} products={products} onClose={onFormClose} />}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12, marginTop: 20 }}>
+        {bundles.length === 0 && !showForm && <div style={{ color: '#8b949e', fontSize: 14 }}>No bundles yet. Create your first ready-made build.</div>}
+        {bundles.map((b: any) => {
+          const items = (b.product_ids || []).map((id: string) => products.find((p: Product) => p.id === id)).filter(Boolean)
+          const total = items.reduce((s: number, p: Product) => s + p.price, 0)
+          const allInStock = items.length > 0 && items.every((p: Product) => p.active && p.stock > 0)
+          return (
+            <div key={b.id} style={{ background: '#161b22', border: `1px solid ${b.active ? '#21262d' : '#3a2a0d'}`, borderRadius: 10, padding: 18 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <div style={{ color: '#e6edf3', fontWeight: 600, fontSize: 15 }}>{b.name}</div>
+                <span style={{ background: b.active ? '#1a2e1a' : '#2a1e0d', color: b.active ? '#3fb950' : '#e3b341', fontSize: 10, padding: '2px 8px', borderRadius: 20 }}>{b.active ? 'Active' : 'Hidden'}</span>
+              </div>
+              {b.description && <div style={{ color: '#8b949e', fontSize: 12, marginBottom: 10 }}>{b.description}</div>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 10 }}>
+                {items.map((p: Product) => (
+                  <div key={p.id} style={{ color: '#8b949e', fontSize: 12 }}>• {p.name} <span style={{ color: '#378ADD' }}>({p.price.toLocaleString()} EGP)</span></div>
+                ))}
+              </div>
+              {!allInStock && <div style={{ color: '#f85149', fontSize: 11, marginBottom: 8 }}>⚠️ One or more parts are out of stock / inactive</div>}
+              <div style={{ color: '#3fb950', fontWeight: 700, fontSize: 16, marginBottom: 12 }}>{total.toLocaleString()} EGP total</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => onEdit(b)} style={{ background: '#0c2a4a', border: '1px solid #378ADD', color: '#85b7eb', borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: 'pointer' }}>Edit</button>
+                <button className="btn-danger" onClick={() => onDelete(b.id)}>Delete</button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function BundleForm({ bundle, products, onClose }: { bundle: Bundle | null; products: Product[]; onClose: () => void }) {
+  const labelStyle = { fontSize: 13, color: '#8b949e', marginBottom: 6, display: 'block' as const }
+  const [name, setName] = useState(bundle?.name || '')
+  const [description, setDescription] = useState(bundle?.description || '')
+  const [active, setActive] = useState(bundle?.active ?? true)
+  const [selectedIds, setSelectedIds] = useState<string[]>(bundle?.product_ids || [])
+  const [search, setSearch] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const filtered = products.filter((p: Product) =>
+    p.name.toLowerCase().includes(search.toLowerCase())
+  )
+  const selectedProducts = selectedIds.map(id => products.find((p: Product) => p.id === id)).filter(Boolean) as Product[]
+  const total = selectedProducts.reduce((s, p) => s + p.price, 0)
+
+  function toggle(id: string) {
+    setSelectedIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id])
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault()
+    if (!name.trim() || selectedIds.length === 0) return
+    setSaving(true)
+    const body = { name, description, active, product_ids: selectedIds }
+    if (bundle) {
+      await fetch(`/api/bundles/${bundle.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    } else {
+      await fetch('/api/bundles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    }
+    setSaving(false)
+    onClose()
+  }
+
+  return (
+    <form onSubmit={handleSave} style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+        <div>
+          <label style={labelStyle}>Bundle Name *</label>
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Budget AMD Build" required />
+        </div>
+        <div>
+          <label style={labelStyle}>Visible on site?</label>
+          <div style={{ paddingTop: 8 }}><Toggle label={active ? 'Active' : 'Hidden'} value={active} onChange={() => setActive(a => !a)} /></div>
+        </div>
+      </div>
+      <div style={{ marginBottom: 14 }}>
+        <label style={labelStyle}>Description (optional)</label>
+        <input value={description} onChange={e => setDescription(e.target.value)} placeholder="e.g. Great for 1080p gaming" />
+      </div>
+
+      <label style={labelStyle}>Pick the parts (you're confirming these are compatible together) *</label>
+      <input type="text" placeholder="🔍 Search products to add..." value={search} onChange={e => setSearch(e.target.value)}
+        style={{ marginBottom: 10 }} />
+
+      {selectedProducts.length > 0 && (
+        <div style={{ background: '#0d1117', border: '1px solid #21262d', borderRadius: 8, padding: 10, marginBottom: 10 }}>
+          <div style={{ color: '#8b949e', fontSize: 11, marginBottom: 6 }}>SELECTED ({selectedProducts.length}) — {total.toLocaleString()} EGP total</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {selectedProducts.map(p => (
+              <span key={p.id} onClick={() => toggle(p.id)} style={{ background: '#0c2a4a', border: '1px solid #378ADD', color: '#85b7eb', fontSize: 11, padding: '4px 10px', borderRadius: 20, cursor: 'pointer' }}>
+                {p.name} ✕
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ maxHeight: 260, overflowY: 'auto', border: '1px solid #21262d', borderRadius: 8, padding: 8, marginBottom: 16 }}>
+        {filtered.slice(0, 60).map((p: Product) => (
+          <div key={p.id} onClick={() => toggle(p.id)} style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px',
+            borderRadius: 6, cursor: 'pointer', fontSize: 13,
+            background: selectedIds.includes(p.id) ? '#0c2a4a' : 'transparent',
+            color: selectedIds.includes(p.id) ? '#85b7eb' : '#e6edf3',
+          }}>
+            <span>{selectedIds.includes(p.id) ? '☑' : '☐'} {p.name} <span style={{ color: '#6e7681', fontSize: 11 }}>({(p.category as any)?.name || ''})</span></span>
+            <span style={{ color: '#378ADD' }}>{p.price.toLocaleString()} EGP{p.stock === 0 ? ' · out of stock' : ''}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button type="submit" className="btn-primary" disabled={saving || !name.trim() || selectedIds.length === 0}>{saving ? 'Saving...' : (bundle ? 'Save Changes' : 'Create Bundle')}</button>
+        <button type="button" onClick={onClose} style={{ background: 'none', border: '1px solid #21262d', color: '#8b949e', borderRadius: 8, padding: '10px 20px', cursor: 'pointer' }}>Cancel</button>
+      </div>
+    </form>
+  )
+}
 function ProductForm({ product, categories, onClose }: { product: Product | null; categories: Category[]; onClose: () => void }) {
   const [form, setForm] = useState({
     name: product?.name || '',
