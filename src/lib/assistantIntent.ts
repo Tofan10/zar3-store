@@ -56,11 +56,11 @@ export function parseIntent(message: string): QueryIntent {
 
 // Rough budget split for a full build suggestion.
 export const BUILD_ALLOCATION: { slug: string; label: string; share: number }[] = [
-  { slug: 'processors-cpu', label: 'CPU', share: 0.25 },
-  { slug: 'motherboards', label: 'Motherboard', share: 0.12 },
-  { slug: 'memory-ram', label: 'RAM', share: 0.10 },
-  { slug: 'graphics-cards-gpu', label: 'GPU', share: 0.30 },
+  { slug: 'processors-cpu', label: 'CPU', share: 0.23 },
+  { slug: 'motherboards', label: 'Motherboard', share: 0.11 },
+  { slug: 'memory-ram', label: 'RAM', share: 0.14 },
+  { slug: 'graphics-cards-gpu', label: 'GPU', share: 0.28 },
   { slug: 'storage', label: 'Storage', share: 0.08 },
   { slug: 'power-supplies-psu', label: 'PSU', share: 0.08 },
-  { slug: 'computer-cases', label: 'Case', share: 0.07 },
+  { slug: 'computer-cases', label: 'Case', share: 0.08 },
 ]

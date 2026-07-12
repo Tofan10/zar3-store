@@ -63,7 +63,15 @@ export async function POST(req: NextRequest) {
       }
     }
     productContext = sections.join('\n\n')
-    extraInstructions = `\nThe customer wants a full PC build with a total budget of about ${intent.budget} EGP. Using ONLY the in-stock items listed below (grouped by part), assemble 1-2 complete build options that fit within the total budget. If both Intel and AMD CPU options exist below, offer one build of each so the customer can choose. Give a short parts list with prices and the running total for each build.`
+    extraInstructions = `
+The customer wants a full PC build with a total budget of about ${intent.budget} EGP. Using ONLY the in-stock items listed below (grouped by part), assemble ONE clear, well-balanced build that fits the total budget (if both Intel and AMD CPU options exist below, you may offer one build of each so the customer can choose, but do not present more than 2 builds).
+
+Follow these rules strictly:
+- Use each part's name and category EXACTLY as written below — never rename or reinterpret a part (e.g. a "Computer Cases" item is a case, not "a computer"; do not invent a friendlier label for it).
+- Prefer at least 16GB of total RAM if any combination of the listed RAM options reaches that within budget. If the best you can do within budget is below 16GB, say so plainly (e.g. "only 8GB fits this budget — recommend upgrading later") instead of presenting it as ideal.
+- Make sure the CPU and motherboard you pick are the same platform (an AMD CPU needs an AMD motherboard, an Intel CPU needs an Intel-compatible motherboard) — never mix an AMD CPU with an Intel board or vice versa.
+- Be decisive and consistent: pick the single best-value combination from the options given rather than a random mix, so the same question would get essentially the same recommendation each time.
+- End with the parts list, each item's price, and the running total.`
   } else if (intent.categorySlug && intent.budget) {
     // Category + budget: e.g. "GPU for 14k" — list every matching in-stock
     // item, not just a handful, since the customer explicitly wants to
@@ -125,6 +133,7 @@ export async function POST(req: NextRequest) {
 
 Rules:
 - ONLY state stock levels and prices from the CURRENT STOCK DATA below — never invent or guess numbers.
+- Use each product's category exactly as given (e.g. a "Computer Cases" item is a case, not "a computer") — never relabel or reinterpret what something is.
 - If nothing below matches what the customer asked, say you're not sure and suggest they browse the site or message on WhatsApp/Facebook, rather than making something up.
 - Keep answers short and conversational unless the customer asks for a build/comparison, in which case a clear list is fine.
 - To order, point customers to WhatsApp (01124424414), the Facebook page, or the "Add to Cart" button on the product itself.
@@ -147,7 +156,7 @@ ${productContext || 'No specific products matched this question — ask the cust
           ...(Array.isArray(history) ? history.slice(-6) : []),
           { role: 'user', content: message },
         ],
-        temperature: 0.4,
+        temperature: intent.isBuildRequest ? 0.15 : 0.4,
         max_tokens: 600,
       }),
     })
