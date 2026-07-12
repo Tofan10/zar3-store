@@ -57,21 +57,21 @@ export async function POST(req: NextRequest) {
         .lte('price', subBudget)
         .gt('stock', 0)
         .order('price', { ascending: false })
-        .limit(6)
+        .limit(3)
       if (data && data.length) {
         sections.push(`${part.label} (target ~${subBudget} EGP):\n${data.map(formatProduct).join('\n')}`)
       }
     }
     productContext = sections.join('\n\n')
     extraInstructions = `
-The customer wants a full PC build with a total budget of about ${intent.budget} EGP. Using ONLY the in-stock items listed below (grouped by part), assemble ONE clear, well-balanced build that fits the total budget (if both Intel and AMD CPU options exist below, you may offer one build of each so the customer can choose, but do not present more than 2 builds).
+The customer wants a full PC build with a total budget of about ${intent.budget} EGP. Using ONLY the in-stock items listed below, pick exactly ONE item per part to form a single well-balanced build within the total budget.
 
 Follow these rules strictly:
-- Use each part's name and category EXACTLY as written below — never rename or reinterpret a part (e.g. a "Computer Cases" item is a case, not "a computer"; do not invent a friendlier label for it).
-- Prefer at least 16GB of total RAM if any combination of the listed RAM options reaches that within budget. If the best you can do within budget is below 16GB, say so plainly (e.g. "only 8GB fits this budget — recommend upgrading later") instead of presenting it as ideal.
-- Make sure the CPU and motherboard you pick are the same platform (an AMD CPU needs an AMD motherboard, an Intel CPU needs an Intel-compatible motherboard) — never mix an AMD CPU with an Intel board or vice versa.
-- Be decisive and consistent: pick the single best-value combination from the options given rather than a random mix, so the same question would get essentially the same recommendation each time.
-- End with the parts list, each item's price, and the running total.`
+- Use each part's name and category EXACTLY as written below — never rename or reinterpret a part (e.g. a "Computer Cases" item is a case, not "a computer").
+- Prefer at least 16GB of total RAM if any listed RAM option reaches that within budget; otherwise say plainly that it's below the recommended amount.
+- Make sure the CPU and motherboard are the same platform (AMD with AMD, Intel with Intel).
+- Be BRIEF: reply with just the picked part name + price on one line each, then the total, in well under 100 words — no extra explanation.
+- Finish with exactly this line so the customer can finalize and customize it themselves: "جهز الاختيار ده أو غيّر أي قطعة من صفحة /store/build 🛠️"`
   } else if (intent.categorySlug && intent.budget) {
     // Category + budget: e.g. "GPU for 14k" — list every matching in-stock
     // item, not just a handful, since the customer explicitly wants to
@@ -85,7 +85,7 @@ Follow these rules strictly:
       .lte('price', Math.round(intent.budget * 1.1))
       .gt('stock', 0)
       .order('price', { ascending: false })
-      .limit(20) : { data: [] }
+      .limit(12) : { data: [] }
     productContext = (data || []).map(formatProduct).join('\n')
     extraInstructions = `\nThe customer has a budget of about ${intent.budget} EGP for this category. List ALL matching in-stock options below (not just one), sorted from best/most expensive to cheapest, with prices — let them compare and pick.`
   } else if (intent.categorySlug) {
@@ -114,7 +114,7 @@ Follow these rules strictly:
         .select(PRODUCT_FIELDS)
         .eq('active', true)
         .or(orFilter)
-        .limit(10)
+        .limit(6)
       products = data || []
     }
     if (products.length === 0) {
@@ -123,7 +123,7 @@ Follow these rules strictly:
         .select(PRODUCT_FIELDS)
         .eq('active', true)
         .order('featured', { ascending: false })
-        .limit(8)
+        .limit(6)
       products = data || []
     }
     productContext = products.map(formatProduct).join('\n')
@@ -135,12 +135,14 @@ Rules:
 - ONLY state stock levels and prices from the CURRENT STOCK DATA below — never invent or guess numbers.
 - Use each product's category exactly as given (e.g. a "Computer Cases" item is a case, not "a computer") — never relabel or reinterpret what something is.
 - If nothing below matches what the customer asked, say you're not sure and suggest they browse the site or message on WhatsApp/Facebook, rather than making something up.
-- Keep answers short and conversational unless the customer asks for a build/comparison, in which case a clear list is fine.
+- Keep answers short and conversational (2-4 sentences) unless the customer asks for a build/comparison list.
 - To order, point customers to WhatsApp (01124424414), the Facebook page, or the "Add to Cart" button on the product itself.
-- Reply in the same language the customer wrote in (Arabic or English).${extraInstructions}
+- Reply in the same language the customer wrote in (Arabic or English). Be concise — don't repeat information already given in the conversation.${extraInstructions}
 
 CURRENT STOCK DATA (live from the database):
 ${productContext || 'No specific products matched this question — ask the customer to clarify what they are looking for (which category, and their budget).'}`
+
+  const maxTokens = intent.isBuildRequest ? 300 : intent.categorySlug && intent.budget ? 450 : 300
 
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -153,11 +155,11 @@ ${productContext || 'No specific products matched this question — ask the cust
         model: 'llama-3.1-8b-instant',
         messages: [
           { role: 'system', content: systemPrompt },
-          ...(Array.isArray(history) ? history.slice(-6) : []),
+          ...(Array.isArray(history) ? history.slice(-4) : []),
           { role: 'user', content: message },
         ],
         temperature: intent.isBuildRequest ? 0.15 : 0.4,
-        max_tokens: 600,
+        max_tokens: maxTokens,
       }),
     })
 

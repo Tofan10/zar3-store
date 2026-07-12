@@ -40,7 +40,7 @@ export default function ChatWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
-          history: nextMessages.slice(-8).map(m => ({ role: m.role, content: m.content })),
+          history: nextMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
         }),
       })
       const data = await res.json()

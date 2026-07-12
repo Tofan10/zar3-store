@@ -99,12 +99,18 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
           </Link>
 
           {/* Center quick nav (desktop) */}
-          <div className="desktop-nav-links" style={{ display: 'flex', gap: 26 }}>
+          <div className="desktop-nav-links" style={{ display: 'flex', gap: 26, alignItems: 'center' }}>
             {groups.map(g => (
               <a key={g.key} href={g.anchor ? `/store#${g.anchor}` : '/store'} className="nav-link-underline" style={{ color: 'var(--text)', fontSize: 13.5, fontWeight: 500, textDecoration: 'none' }}>
                 {g.icon} {g.title}
               </a>
             ))}
+            <Link href="/store/build" style={{
+              background: 'var(--brand-100)', color: 'var(--brand-dark)', fontSize: 13, fontWeight: 700,
+              textDecoration: 'none', padding: '6px 14px', borderRadius: 20, border: '1px solid var(--brand)',
+            }}>
+              🛠️ جمّع تجميعتك
+            </Link>
           </div>
 
           {/* Right: Cart + Hamburger */}
@@ -132,6 +138,10 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
             <Link href="/store" onClick={() => setMenuOpen(false)}
               style={{ color: isAllActive ? 'var(--brand-dark)' : 'var(--muted)', fontSize: 14, textDecoration: 'none', padding: '10px 12px', borderRadius: 6, border: `1px solid ${isAllActive ? '#1a3a5c' : 'var(--border)'}`, background: isAllActive ? 'var(--brand-100)' : 'transparent' }}>
               🗂️ All
+            </Link>
+            <Link href="/store/build" onClick={() => setMenuOpen(false)}
+              style={{ color: 'var(--brand-dark)', fontSize: 14, fontWeight: 700, textDecoration: 'none', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--brand)', background: 'var(--brand-100)' }}>
+              🛠️ جمّع تجميعتك
             </Link>
             {categories.map((cat: any) => (
               <Link key={cat.id} href={`/store/category/${cat.slug}`}
