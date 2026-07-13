@@ -4,22 +4,25 @@ import SearchableProducts from './SearchableProducts'
 import ProductCarousel from '@/components/store/ProductCarousel'
 import BrandStrip from '@/components/store/BrandStrip'
 import TopSearchBar from '@/components/store/TopSearchBar'
+import BundlesSection from '@/components/store/BundlesSection'
 import { groupCategories } from '@/lib/categoryGroups'
+import { getActiveBundles } from '@/lib/bundles'
 
 const LOGO_URL = 'https://gumjhqrfsvngjppciowu.supabase.co/storage/v1/object/sign/logo/481354976_122205531740136612_8758662314822517452_n.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV84MDU0Y2IzOC04OWQ3LTQzODgtODM4ZC02MmE4MGJmODE3NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJsb2dvLzQ4MTM1NDk3Nl8xMjIyMDU1MzE3NDAxMzY2MTJfODc1ODY2MjMxNDgyMjUxNzQ1Ml9uLmpwZyIsImlhdCI6MTc3NzI1Mjg2NiwiZXhwIjoyMDkyNjEyODY2fQ.DktxglH6FH6lD5_5wMCoOs4yZPtnGAotyvike91iPqY'
 
 export const revalidate = 60
 
 async function getData() {
-  const [{ data: products }, { data: categories }] = await Promise.all([
+  const [{ data: products }, { data: categories }, bundles] = await Promise.all([
     supabase.from('products').select('*, category:categories(*)').eq('active', true).order('created_at', { ascending: false }),
     supabase.from('categories').select('*').order('sort_order'),
+    getActiveBundles(),
   ])
-  return { products: products || [], categories: categories || [] }
+  return { products: products || [], categories: categories || [], bundles }
 }
 
 export default async function StorePage() {
-  const { products, categories } = await getData()
+  const { products, categories, bundles } = await getData()
   const groups = groupCategories(categories)
 
   return (
@@ -75,6 +78,8 @@ export default async function StorePage() {
 
       {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+
+        <BundlesSection bundles={bundles} />
 
         {groups.length > 0 && (
           <div style={{ marginBottom: 20 }}>

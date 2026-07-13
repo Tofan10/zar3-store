@@ -105,6 +105,9 @@ export default function StoreNavbar({ categories }: { categories: any[] }) {
                 {g.icon} {g.title}
               </a>
             ))}
+            <a href="/store#ready-bundles" className="nav-link-underline" style={{ color: 'var(--text)', fontSize: 13.5, fontWeight: 500, textDecoration: 'none' }}>
+              🛠️ تجميعات جاهزة
+            </a>
             <Link href="/store/build" style={{
               background: 'var(--brand-100)', color: 'var(--brand-dark)', fontSize: 13, fontWeight: 700,
               textDecoration: 'none', padding: '6px 14px', borderRadius: 20, border: '1px solid var(--brand)',

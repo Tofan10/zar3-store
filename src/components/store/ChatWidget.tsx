@@ -7,7 +7,7 @@ export default function ChatWidget() {
   const [open, setOpen] = useState(false)
   const [showTeaser, setShowTeaser] = useState(false)
   const [messages, setMessages] = useState<Msg[]>([
-    { role: 'assistant', content: 'أهلاً بيك! 👋 أنا مساعدك الذكي من ZAR3 هاردوير، اسألني عن أي منتج، سعره، أو المتوفر عندنا دلوقتي، أو قولّي ميزانيتك وهجهزلك تجميعة مناسبة.\n\nHey! I\'m ZAR3 Hardware\'s smart assistant — ask me about any product, price, stock, or your budget for a full build.' },
+    { role: 'assistant', content: 'أهلاً بيك! 👋 أنا مساعد ZAR3 هاردوير. اسألني عن أي منتج، سعره، أو المتوفر عندنا دلوقتي، أو قولّي ميزانيتك وأقترحلك تجميعة جاهزة مناسبة.' },
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
