@@ -450,15 +450,57 @@ function BundleForm({ bundle, products, onClose }: { bundle: Bundle | null; prod
   const [selectedIds, setSelectedIds] = useState<string[]>(bundle?.product_ids || [])
   const [search, setSearch] = useState('')
   const [saving, setSaving] = useState(false)
+  const [importMsg, setImportMsg] = useState('')
 
   const filtered = products.filter((p: Product) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   )
-  const selectedProducts = selectedIds.map(id => products.find((p: Product) => p.id === id)).filter(Boolean) as Product[]
-  const total = selectedProducts.reduce((s, p) => s + p.price, 0)
+
+  // Group selected ids so quantity > 1 (e.g. 2x RAM stick) shows as "x2"
+  // instead of two identical chips.
+  const grouped = (() => {
+    const counts = new Map<string, number>()
+    selectedIds.forEach(id => counts.set(id, (counts.get(id) || 0) + 1))
+    return Array.from(counts.entries())
+      .map(([id, qty]) => ({ product: products.find((p: Product) => p.id === id), qty }))
+      .filter(x => x.product) as { product: Product; qty: number }[]
+  })()
+  const total = grouped.reduce((s, g) => s + g.product.price * g.qty, 0)
 
   function toggle(id: string) {
     setSelectedIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id])
+  }
+
+  function removeAll(id: string) {
+    setSelectedIds(ids => ids.filter(x => x !== id))
+  }
+
+  // The Download Quote PDF on the storefront is generated straight from
+  // the shopping cart, so instead of trying to parse text back out of a
+  // PDF (unreliable), we read that same cart data directly — it's saved
+  // in this browser's localStorage under the "zar3-cart" key. Add your
+  // bundle's parts to the cart on the store like a normal customer, then
+  // come back here and import them in one click.
+  function importFromCart() {
+    try {
+      const raw = localStorage.getItem('zar3-cart')
+      const cart = raw ? JSON.parse(raw) : []
+      if (!Array.isArray(cart) || cart.length === 0) {
+        setImportMsg('السلة فاضية دلوقتي — روح للمتجر وضيف المنتجات بـ Add to Cart الأول، وارجع هنا.')
+        return
+      }
+      const newIds: string[] = []
+      cart.forEach((item: any) => {
+        const id = item?.product?.id
+        const qty = Math.max(1, Number(item?.quantity) || 1)
+        if (id) for (let i = 0; i < qty; i++) newIds.push(id)
+      })
+      setSelectedIds(ids => [...ids, ...newIds])
+      setImportMsg(`✓ اتضاف ${newIds.length} قطعة من السلة`)
+      setTimeout(() => setImportMsg(''), 3000)
+    } catch {
+      setImportMsg('حصلت مشكلة في قراءة السلة.')
+    }
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -492,17 +534,27 @@ function BundleForm({ bundle, products, onClose }: { bundle: Bundle | null; prod
         <input value={description} onChange={e => setDescription(e.target.value)} placeholder="e.g. Great for 1080p gaming" />
       </div>
 
-      <label style={labelStyle}>Pick the parts (you're confirming these are compatible together) *</label>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <label style={{ ...labelStyle, marginBottom: 0 }}>Pick the parts (you're confirming these are compatible together) *</label>
+        <button type="button" onClick={importFromCart} style={{ background: '#0c2a0c', border: '1px solid #3fb950', color: '#3fb950', borderRadius: 8, padding: '6px 14px', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          📥 Import from Cart
+        </button>
+      </div>
+      {importMsg && <div style={{ color: '#8b949e', fontSize: 12, marginBottom: 8 }}>{importMsg}</div>}
+      <div style={{ color: '#6e7681', fontSize: 11, marginBottom: 10 }}>
+        أسهل طريقة: افتح المتجر في تاب تاني، ضيف قطع التجميعة بـ Add to Cart عادي (زي الـ PDF اللي بتنزّله)، وارجع هنا ودوس الزرار ده.
+      </div>
+
       <input type="text" placeholder="🔍 Search products to add..." value={search} onChange={e => setSearch(e.target.value)}
         style={{ marginBottom: 10 }} />
 
-      {selectedProducts.length > 0 && (
+      {grouped.length > 0 && (
         <div style={{ background: '#0d1117', border: '1px solid #21262d', borderRadius: 8, padding: 10, marginBottom: 10 }}>
-          <div style={{ color: '#8b949e', fontSize: 11, marginBottom: 6 }}>SELECTED ({selectedProducts.length}) — {total.toLocaleString()} EGP total</div>
+          <div style={{ color: '#8b949e', fontSize: 11, marginBottom: 6 }}>SELECTED ({grouped.length}) — {total.toLocaleString()} EGP total</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {selectedProducts.map(p => (
-              <span key={p.id} onClick={() => toggle(p.id)} style={{ background: '#0c2a4a', border: '1px solid #378ADD', color: '#85b7eb', fontSize: 11, padding: '4px 10px', borderRadius: 20, cursor: 'pointer' }}>
-                {p.name} ✕
+            {grouped.map(g => (
+              <span key={g.product.id} onClick={() => removeAll(g.product.id)} style={{ background: '#0c2a4a', border: '1px solid #378ADD', color: '#85b7eb', fontSize: 11, padding: '4px 10px', borderRadius: 20, cursor: 'pointer' }}>
+                {g.product.name}{g.qty > 1 ? ` ×${g.qty}` : ''} ✕
               </span>
             ))}
           </div>
