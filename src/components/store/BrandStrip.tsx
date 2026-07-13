@@ -1,8 +1,12 @@
+'use client'
+import { useRef } from 'react'
 import Link from 'next/link'
 import { BRANDS, brandSlug, detectBrand } from '@/lib/brands'
 import { Product } from '@/lib/types'
 
 export default function BrandStrip({ products }: { products: Product[] }) {
+  const trackRef = useRef<HTMLDivElement>(null)
+
   // Only show brands that actually have products in the catalog
   const activeBrands = BRANDS.filter(b => {
     return products.some(p => detectBrand(p.name)?.name === b.name)
@@ -10,10 +14,28 @@ export default function BrandStrip({ products }: { products: Product[] }) {
 
   if (activeBrands.length === 0) return null
 
+  function scrollByCards(dir: 1 | -1) {
+    const el = trackRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * 4 * 152, behavior: 'smooth' })
+  }
+
   return (
     <section className="reveal" style={{ marginBottom: 44 }}>
-      <h2 style={{ fontSize: 19, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>🏷️ Shop by Brand</h2>
-      <div className="carousel-track scrollbar-hide" style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 19, fontWeight: 700, color: 'var(--text)' }}>🏷️ Shop by Brand</h2>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => scrollByCards(-1)} aria-label="Previous"
+            style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--brand-dark)', cursor: 'pointer', fontSize: 15 }}>
+            ‹
+          </button>
+          <button onClick={() => scrollByCards(1)} aria-label="Next"
+            style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--brand-dark)', cursor: 'pointer', fontSize: 15 }}>
+            ›
+          </button>
+        </div>
+      </div>
+      <div ref={trackRef} className="carousel-track scrollbar-hide" style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }}>
         {activeBrands.map((b, i) => (
           <Link
             key={b.name}

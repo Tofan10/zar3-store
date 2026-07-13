@@ -70,7 +70,7 @@ export default function ChatWidget() {
       {/* Teaser intro bubble */}
       {showTeaser && !open && (
         <div className="chat-teaser" style={{
-          position: 'fixed', bottom: 92, left: 20, zIndex: 200,
+          position: 'fixed', bottom: 140, left: 20, zIndex: 199,
           maxWidth: 260, background: 'var(--surface)', border: '1px solid var(--brand)',
           borderRadius: '14px 14px 14px 2px', padding: '12px 14px',
           boxShadow: '0 16px 34px -10px rgba(14,165,233,0.5)',
