@@ -58,8 +58,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 <div style={{
                   position: 'absolute', top: 14, right: 14, background: condStyle.bg, color: condStyle.color,
                   fontSize: 13, fontWeight: 700, padding: '5px 12px', borderRadius: 8, zIndex: 2,
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  boxShadow: condStyle.glow ? `0 0 12px 2px ${condStyle.glow}` : undefined,
+                  border: condStyle.glow ? `1px solid ${condStyle.color}55` : undefined,
                 }}>
-                  {condition}
+                  {condStyle.icon && <span>{condStyle.icon}</span>} {condition}
                 </div>
               )}
               <Image
@@ -77,8 +80,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 <div style={{
                   position: 'absolute', top: 14, right: 14, background: condStyle.bg, color: condStyle.color,
                   fontSize: 13, fontWeight: 700, padding: '5px 12px', borderRadius: 8, zIndex: 2, opacity: 1,
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  boxShadow: condStyle.glow ? `0 0 12px 2px ${condStyle.glow}` : undefined,
+                  border: condStyle.glow ? `1px solid ${condStyle.color}55` : undefined,
                 }}>
-                  {condition}
+                  {condStyle.icon && <span>{condStyle.icon}</span>} {condition}
                 </div>
               )}
               🖥️
@@ -100,8 +106,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
               <span style={{ color: 'var(--brand)', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>{(product.category as any)?.icon} {(product.category as any)?.name}</span>
               {condStyle && (
-                <span style={{ background: condStyle.bg, color: condStyle.color, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
-                  {condition}
+                <span style={{
+                  background: condStyle.bg, color: condStyle.color, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  boxShadow: condStyle.glow ? `0 0 8px 1px ${condStyle.glow}` : undefined,
+                }}>
+                  {condStyle.icon && <span>{condStyle.icon}</span>} {condition}
                 </span>
               )}
             </div>

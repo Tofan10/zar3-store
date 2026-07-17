@@ -92,7 +92,16 @@ export default function ProductCard({ product }: { product: Product }) {
           <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end', zIndex: 1 }}>
             {condition && (() => {
               const cs = conditionStyle(condition)
-              return <span style={{ background: cs.bg, color: cs.color, fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{condition}</span>
+              return (
+                <span style={{
+                  background: cs.bg, color: cs.color, fontSize: 10, padding: '2px 9px', borderRadius: 20, fontWeight: 700,
+                  display: 'flex', alignItems: 'center', gap: 3,
+                  boxShadow: cs.glow ? `0 0 10px 1px ${cs.glow}` : undefined,
+                  border: cs.glow ? `1px solid ${cs.color}55` : undefined,
+                }}>
+                  {cs.icon && <span>{cs.icon}</span>} {condition}
+                </span>
+              )
             })()}
             {product.featured && (
               <span style={{ background: 'var(--brand)', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Featured</span>
