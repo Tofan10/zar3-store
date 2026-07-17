@@ -20,9 +20,9 @@ export function detectCondition(description: string | null | undefined): Conditi
 export function conditionStyle(condition: Condition): { bg: string; color: string; icon: string; glow?: string } {
   switch (condition) {
     case 'New': return { bg: '#0c2a0c', color: '#3fb950', icon: '✨', glow: 'rgba(63,185,80,0.5)' }
-    case 'Like New': return { bg: '#0d1b2a', color: '#38bdf8', icon: '💎', glow: 'rgba(56,189,248,0.5)' }
+    case 'Like New': return { bg: '#21262d', color: '#8b949e', icon: '' }
     case 'Open Box': return { bg: '#2a1e0d', color: '#e3b341', icon: '📦', glow: 'rgba(227,179,65,0.4)' }
-    case 'Used': return { bg: '#21262d', color: '#8b949e', icon: '' }
+    case 'Used': return { bg: '#0d1b2a', color: '#38bdf8', icon: '💠', glow: 'rgba(56,189,248,0.5)' }
   }
 }
 
