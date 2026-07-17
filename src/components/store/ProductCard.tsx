@@ -5,6 +5,7 @@ import { Product } from '@/lib/types'
 import { useCart } from '@/lib/CartContext'
 import { useQuickView } from '@/lib/QuickViewContext'
 import { getDiscount } from '@/lib/pricing'
+import { detectCondition, conditionStyle } from '@/lib/condition'
 
 function getOptimizedUrl(url: string) {
   if (url && url.includes('res.cloudinary.com')) {
@@ -21,6 +22,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const cartItem = items.find(i => i.product.id === product.id)
   const cartQty = cartItem?.quantity || 0
   const discount = getDiscount(product.price, product.original_price)
+  const condition = detectCondition(product.description)
 
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault()
@@ -88,6 +90,10 @@ export default function ProductCard({ product }: { product: Product }) {
 
           {/* Badges */}
           <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end', zIndex: 1 }}>
+            {condition && (() => {
+              const cs = conditionStyle(condition)
+              return <span style={{ background: cs.bg, color: cs.color, fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>{condition}</span>
+            })()}
             {product.featured && (
               <span style={{ background: 'var(--brand)', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Featured</span>
             )}
