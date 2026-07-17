@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import AddToCartButton from './AddToCartButton'
 import { getDiscount } from '@/lib/pricing'
+import { detectCondition, conditionStyle } from '@/lib/condition'
 
 export const revalidate = 60
 
@@ -28,6 +29,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   const inStock = product.stock > 0
   const discount = getDiscount(product.price, product.original_price)
+  const condition = detectCondition(product.description)
+  const condStyle = condition ? conditionStyle(condition) : null
 
   return (
     <div className="reveal" style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
@@ -51,6 +54,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                   -{discount.percent}% OFF
                 </div>
               )}
+              {condStyle && (
+                <div style={{
+                  position: 'absolute', top: 14, right: 14, background: condStyle.bg, color: condStyle.color,
+                  fontSize: 13, fontWeight: 700, padding: '5px 12px', borderRadius: 8, zIndex: 2,
+                }}>
+                  {condition}
+                </div>
+              )}
               <Image
                 src={product.images[0]}
                 alt={product.name}
@@ -61,7 +72,17 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
               />
             </div>
           ) : (
-            <div style={{ height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 80, opacity: 0.2, background: 'var(--brand-50)' }}>🖥️</div>
+            <div style={{ position: 'relative', height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 80, opacity: 0.2, background: 'var(--brand-50)' }}>
+              {condStyle && (
+                <div style={{
+                  position: 'absolute', top: 14, right: 14, background: condStyle.bg, color: condStyle.color,
+                  fontSize: 13, fontWeight: 700, padding: '5px 12px', borderRadius: 8, zIndex: 2, opacity: 1,
+                }}>
+                  {condition}
+                </div>
+              )}
+              🖥️
+            </div>
           )}
           {product.images?.length > 1 && (
             <div style={{ display: 'flex', gap: 8, padding: '12px 16px', borderTop: '1px solid var(--border)' }}>
@@ -76,7 +97,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <div style={{ color: 'var(--brand)', fontSize: 12, marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>{(product.category as any)?.icon} {(product.category as any)?.name}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <span style={{ color: 'var(--brand)', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>{(product.category as any)?.icon} {(product.category as any)?.name}</span>
+              {condStyle && (
+                <span style={{ background: condStyle.bg, color: condStyle.color, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+                  {condition}
+                </span>
+              )}
+            </div>
             <h1 style={{ color: 'var(--text)', fontSize: 26, fontWeight: 700, lineHeight: 1.3, marginBottom: 8 }}>{product.name}</h1>
             {product.description && <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.7 }}>{product.description}</p>}
           </div>
@@ -115,12 +143,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <a href={`https://wa.me/201124424414?text=Hello, I'd like to order: ${encodeURIComponent(product.name)} - ${product.price.toLocaleString()} EGP`}
               target="_blank" rel="noopener"
-              style={{ background: '#128c7e', color: '#fff', borderRadius: 10, padding: '13px', fontSize: 15, fontWeight: 600, textDecoration: 'none', textAlign: 'center', boxShadow: '0 6px 16px -6px rgba(18,140,126,0.5)' }}>
+              style={{ background: '#128c7e', color: '#fff', borderRadius: 10, padding: '13px', fontSize: 15, fontWeight: 600, textDecoration: 'none', textAlign: 'center' }}>
               Order via WhatsApp
             </a>
             <a href="https://www.facebook.com/profile.php?id=61554098374352"
               target="_blank" rel="noopener"
-              style={{ background: '#1877f2', color: '#fff', borderRadius: 10, padding: '13px', fontSize: 15, fontWeight: 600, textDecoration: 'none', textAlign: 'center', boxShadow: '0 6px 16px -6px rgba(24,119,242,0.5)' }}>
+              style={{ background: '#1877f2', color: '#fff', borderRadius: 10, padding: '13px', fontSize: 15, fontWeight: 600, textDecoration: 'none', textAlign: 'center' }}>
               Order via Facebook
             </a>
           </div>
